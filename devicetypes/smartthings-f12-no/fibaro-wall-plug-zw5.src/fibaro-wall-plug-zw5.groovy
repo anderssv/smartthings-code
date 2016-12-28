@@ -166,23 +166,6 @@ def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv2.SensorMultilevelR
     createEvent(map)
 }
 
-def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv5.SensorMultilevelReport cmd) {
-	log.debug "zwaveEvent: sensormultilevelv5.SensorMultilevelReport"
-    if (state.debug) log.debug "SensorMultilevelReport(sensorType:${cmd.sensorType}, scale:${cmd.scale}, precision:${cmd.precision}, scaledSensorValue:${cmd.scaledSensorValue}, sensorValue:${cmd.sensorValue}, size:${cmd.size})"
-    def map = [ value: cmd.scaledSensorValue, displayed: true]
-    switch(cmd.sensorType) {
-        case physicalgraph.zwave.commands.sensormultilevelv5.SensorMultilevelReport.SENSOR_TYPE_POWER_VERSION_2: 	// 4
-            map.name = "power"
-            map.unit = cmd.scale ? "BTU/h" : "W"
-            map.value = Math.round(cmd.scaledSensorValue)
-            break;
-        default:
-            map.name = "unknown sensor ($cmd.sensorType)"
-            break;
-    }
-    createEvent(map)
-}
-
 def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicReport cmd)
 {
 	log.debug "zwaveEvent: basicv1.BasicReport"
@@ -209,6 +192,17 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv3.MeterReport cmd)
 	} else if (cmd.scale == 2) {
 		createEvent(name: "power", value: Math.round(cmd.scaledMeterValue), unit: "W")
 	}
+}
+
+
+def zwaveEvent(physicalgraph.zwave.commands.securityv1.SecurityMessageEncapsulation cmd) {
+	log.debug "zwaveEvent: securityv1.SecurityMessageEncapsulation"
+    def encapsulatedCommand = cmd.encapsulatedCommand([0x98: 1, 0x20: 1])
+
+    // can specify command class versions here like in zwave.parse
+    if (encapsulatedCommand) {
+        return zwaveEvent(encapsulatedCommand)
+    }
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.crc16encapv1.Crc16Encap cmd)
