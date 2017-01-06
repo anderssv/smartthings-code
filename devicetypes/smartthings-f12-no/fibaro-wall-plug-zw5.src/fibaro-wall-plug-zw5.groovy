@@ -35,8 +35,7 @@ metadata {
 
 		command "reset"
 
-		fingerprint deviceId: "0x1001", inClusters: "0x72,0x86,0x70,0x85,0x8E,0x25,0x73,0x32,0x31,0x7A", outClusters: "0x25,0x32,0x31"
-                fingerprint mfr:"010F", prod:"0602", model:"1001"
+        fingerprint mfr:"010F", prod:"0602", model:"1001"
 	}
 
 	// simulator metadata
