@@ -18,7 +18,7 @@
  *
  *  It is completely based on https://github.com/cscheiene/SmartThingsPublic/blob/master/devicetypes/cscheiene/fibaro-wall-plug.src/fibaro-wall-plug.groovy
  *  
- *  Status: Alpha - On/Off working, basic mod to get power readings. Parameters updated.
+ *  Status: Beta - On/Off working, basic mod to get power readings. Parameters updated.
  *  Device (with parameter specs): http://manuals.fibaro.com/content/manuals/en/FGWPEF-102/FGWPEF-102-EN-A-v2.0.pdf
  *  
  */
