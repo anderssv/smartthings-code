@@ -18,7 +18,7 @@
  *
  *  It is completely based on https://github.com/cscheiene/SmartThingsPublic/blob/master/devicetypes/cscheiene/fibaro-wall-plug.src/fibaro-wall-plug.groovy
  *  
- *  Status: Alpha - On/Off working, basic mod to get power readings. Parameters updated.
+ *  Status: Beta - On/Off working, basic mod to get power readings. Parameters updated.
  *  Device (with parameter specs): http://manuals.fibaro.com/content/manuals/en/FGWPEF-102/FGWPEF-102-EN-A-v2.0.pdf
  *  
  */
@@ -35,8 +35,7 @@ metadata {
 
 		command "reset"
 
-		fingerprint deviceId: "0x1001", inClusters: "0x72,0x86,0x70,0x85,0x8E,0x25,0x73,0x32,0x31,0x7A", outClusters: "0x25,0x32,0x31"
-                fingerprint mfr:"010F", prod:"0602", model:"1001"
+        fingerprint mfr:"010F", prod:"0602", model:"1001"
 	}
 
 	// simulator metadata
