@@ -139,9 +139,9 @@ metadata {
 def parse(String description) {
     log.debug "Parse: " + description
     def result = null
-    def cmd = zwave.parse(description, [0x20: 1, 0x32: 1, 0x72: 2])
+    def cmd = zwave.parse(description)
     if (cmd) {
-        log.debug "Command: " + cmd
+        log.debug "Parsed Command: " + cmd
         result = createEvent(zwaveEvent(cmd))
     }
     return result
