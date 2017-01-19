@@ -34,28 +34,13 @@ preferences {
     section("Set the desired temperature...") {
         input "setpoint", "decimal", title: "Set Temp"
     }
-    section("When there's been movement from (optional, leave blank to not require motion)...") {
-        input "motion", "capability.motionSensor", title: "Motion", required: false
-    }
-    section("Within this number of minutes...") {
-        input "minutes", "number", title: "Minutes", required: false
-    }
-    section("But never go below (or above if A/C) this value with or without motion...") {
-        input "emergencySetpoint", "decimal", title: "Emer Temp", required: false
-    }
     section("Shut off heat when doors open (optional)") {
         input "doors", "capability.contactSensor", title: "Doors", multiple: true, required: false
-    }
-    section("Select 'heat' for a heater and 'cool' for an air conditioner...") {
-        input "mode", "enum", title: "Heating or cooling?", options: ["heat", "cool"]
     }
 }
 
 def subscribeAll() {
     subscribe(sensor, "temperature", temperatureHandler)
-    if (motion) {
-        subscribe(motion, "motion", motionHandler)
-    }
     if (doors) {
         subscribe(doors, "contact", doorHandler)
     }
@@ -70,68 +55,27 @@ def updated() {
     subscribeAll()
 }
 
-
 def doorHandler(evt) {
     log.debug("Door state changed '$evt.value'")
     evaluateTemperatureRules(sensor.currentTemperature)
 }
 
-def isDoorsOpen() {
-    def openDoors = doors.findAll { it.currentState("contact").value == "open" }
-    return openDoors.size() > 0
-}
-
-def evaluateTemperatureRules(temp) {
-    def isActive = hasBeenRecentMotion()
-    if (isDoorsOpen()) {
-        log.debug("Doors are open, so keeping everything off...")
-        flipState("off")
-    } else if (isActive || emergencySetpoint) {
-        evaluate(temp, isActive ? setpoint : emergencySetpoint)
-    } else {
-        outlets.off()
-    }
-}
-
 def temperatureHandler(evt) {
+    log.debug("Temperature event is received")
     evaluateTemperatureRules(evt.doubleValue)
 }
 
-def motionHandler(evt) {
-    if (evt.value == "active") {
-        def lastTemp = sensor.currentTemperature
-        if (lastTemp != null) {
-            evaluate(lastTemp, setpoint)
-        }
-    } else if (evt.value == "inactive") {
-        def isActive = hasBeenRecentMotion()
-        log.debug "INACTIVE($isActive)"
-        if (isActive || emergencySetpoint) {
-            def lastTemp = sensor.currentTemperature
-            if (lastTemp != null) {
-                evaluate(lastTemp, isActive ? setpoint : emergencySetpoint)
-            }
-        } else {
-            outlets.off()
-        }
-    }
-}
-
-private evaluate(currentTemp, desiredTemp) {
-    log.debug "EVALUATE($currentTemp, $desiredTemp)"
-    def threshold = 0.5
-    if (mode == "cool") {
-        // air conditioner
-        if (currentTemp - desiredTemp >= threshold) {
-            flipState("on")
-        } else if (desiredTemp - currentTemp >= threshold) {
-            flipState("off")
-        }
+def evaluateTemperatureRules(temp) {
+    if (isDoorsOpen()) {
+        log.debug("Doors are open, so keeping everything off...")
+        flipState("off")
     } else {
-        // heater
+        def threshold = 0.5
         if (desiredTemp - currentTemp >= threshold) {
+            log.debug("Current temp (${currentTemp}) is lower than desired (${desiredTemp}). Switching on.")
             flipState("on")
         } else if (currentTemp - desiredTemp >= threshold) {
+            log.debug("Current temp (${currentTemp}) is higher than desired (${desiredTemp}). Switching off.")
             flipState("off")
         }
     }
@@ -151,21 +95,4 @@ private flipState(desiredState) {
             outlet.off()
         }
     }
-}
-
-private hasBeenRecentMotion() {
-    def isActive = false
-    if (motion && minutes) {
-        def deltaMinutes = minutes as Long
-        if (deltaMinutes) {
-            def motionEvents = motion.eventsSince(new Date(now() - (60000 * deltaMinutes)))
-            log.trace "Found ${motionEvents?.size() ?: 0} events in the last $deltaMinutes minutes"
-            if (motionEvents.find { it.value == "active" }) {
-                isActive = true
-            }
-        }
-    } else {
-        isActive = true
-    }
-    isActive
 }
