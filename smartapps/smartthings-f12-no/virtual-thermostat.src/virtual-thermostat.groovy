@@ -66,6 +66,7 @@ def temperatureHandler(evt) {
 }
 
 def evaluateTemperatureRules(temp) {
+    log.debug("Evaluating. Current: ${currentTemp}, Desired: ${desiredTemp}")
     if (isDoorsOpen()) {
         log.debug("Doors are open, so keeping everything off...")
         flipState("off")
