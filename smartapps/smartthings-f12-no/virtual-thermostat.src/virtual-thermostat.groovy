@@ -81,6 +81,11 @@ def evaluateTemperatureRules(temp) {
     }
 }
 
+def isDoorsOpen() {
+    def openDoors = doors.findAll { it.currentState("contact").value == "open" }
+    return openDoors.size() > 0
+}
+
 private flipState(desiredState) {
     def wrongState = outlets.findAll { outlet -> outlet.currentValue("switch") != desiredState }
 
