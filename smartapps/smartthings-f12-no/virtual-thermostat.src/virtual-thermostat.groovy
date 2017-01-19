@@ -57,15 +57,15 @@ def updated() {
 
 def doorHandler(evt) {
     log.debug("Door state changed '$evt.value'")
-    evaluateTemperatureRules(sensor.currentTemperature)
+    evaluateTemperatureRules(sensor.currentTemperature, setpoint)
 }
 
 def temperatureHandler(evt) {
     log.debug("Temperature event is received")
-    evaluateTemperatureRules(evt.doubleValue)
+    evaluateTemperatureRules(evt.doubleValue, setpoint)
 }
 
-def evaluateTemperatureRules(temp) {
+def evaluateTemperatureRules(currentTemp, desiredTemp) {
     log.debug("Evaluating. Current: ${currentTemp}, Desired: ${desiredTemp}")
     if (isDoorsOpen()) {
         log.debug("Doors are open, so keeping everything off...")
