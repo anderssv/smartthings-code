@@ -29,6 +29,9 @@ preferences {
 }
 
 def setupPage() {
+	if (! settings["numberOfRooms"]) {
+    	settings["numberOfRooms"] = 1
+    }
 	dynamicPage(name: "setupPage", title: "Set up heat control", install: true, uninstall: true) {
     	section("Defaults") {
         	input "numberOfRooms", "number", title: "Number of rooms", defaultValue: 1, submitOnChange: true
