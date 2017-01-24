@@ -60,7 +60,7 @@ def setupPage() {
 }
 
 def modeCountForRoom(roomNumber) {
-	return settings.count { key, value -> key.startsWith("room${roomNumber}Mode") && key.endsWith("Modes") }
+    return settings.count { key, value -> key.startsWith("room${roomNumber}Mode") && key.endsWith("Modes") }
 }
 
 def findDesiredTemperature(roomNumber) {
