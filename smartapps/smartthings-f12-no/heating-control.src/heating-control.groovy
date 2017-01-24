@@ -36,19 +36,23 @@ def setupPage() {
         section("Defaults") {
             input "numberOfRooms", "number", title: "Number of rooms", defaultValue: 1, submitOnChange: true
             paragraph "This temperature will be used across all rooms if no more specific setting is found."
-            input "defaultMainTemp", "decimal", title: "Default temp"
+            input "defaultMainTemp", "decimal", title: "Default thermostat temperature"
         }
         (1..settings["numberOfRooms"]).each { roomNumber ->
-            section("Room ${roomNumber}") {
-                input "room${roomNumber}Name", "text", title: "Name (just for convenience)"
-                input "room${roomNumber}Sensor", "capability.temperatureMeasurement", title: "Sensor"
-                input "room${roomNumber}Switches", "capability.switch", title: "Switches", multiple: true
-                paragraph "This is the main temp that is used if none of the modes below matches"
-                input "room${roomNumber}MainTemp", "decimal", title: "Default temp", required: false
-                (1..1).each { modeNumber ->
-                    paragraph "These modes and the associated temperatures is chosen over the temperature specified above. It lets you set a lower temp for some modes."
-                    input "room${roomNumber}Mode${modeNumber}Modes", "mode", title: "Modes for reduced temperature", required: false, multiple: true
-                    input "room${roomNumber}Mode${modeNumber}Temp", "decimal", title: "Reduced temperature", required: false
+            def modeSections = settings.count { key, value -> key.startsWith("room${roomNumber}Mode") && key.endsWith("Modes") }
+            if (modeSections == null || modeSections == 0) {
+            	modeSections = 1
+            }
+			section("Room ${roomNumber}") {
+                input "room${roomNumber}Name", "text", title: "Name", description: "Name for convenience"
+                input "room${roomNumber}Sensor", "capability.temperatureMeasurement", title: "Temperature Sensor"
+                input "room${roomNumber}Switches", "capability.switch", title: "Switches to manage", multiple: true
+                input "room${roomNumber}MainTemp", "decimal", title: "Thermostat temperature", required: false, description: "The desired temperature for the room."
+                
+				(1..modeSections+1).each { modeNumber ->
+                    paragraph "----------------------------------------\nSelect modes below to have a different temperature for those."
+                    input "room${roomNumber}Mode${modeNumber}Modes", "mode", title: "Modes for alternative temperature", required: false, multiple: true, submitOnChange: true
+                    input "room${roomNumber}Mode${modeNumber}Temp", "decimal", title: "Alternative temperature", required: false
                 }
             }
         }
