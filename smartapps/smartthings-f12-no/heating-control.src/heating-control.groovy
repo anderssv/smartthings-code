@@ -39,8 +39,8 @@ def setupPage() {
             input "defaultMainTemp", "decimal", title: "Default thermostat temperature"
         }
         (1..settings["numberOfRooms"]).each { roomNumber ->
-            def modeSections = settings.count { key, value -> key.startsWith("room${roomNumber}Mode") && key.endsWith("Modes") }
-            if (modeSections == null || modeSections == 0) {
+            def modeSections = modeCountForRoom(roomNumber)
+            if (modeSections == null) {
                 modeSections = 1
             }
             section("Room ${roomNumber}") {
@@ -51,12 +51,16 @@ def setupPage() {
 
                 (1..modeSections + 1).each { modeNumber ->
                     paragraph "----------------------------------------\nSelect modes below to have a different temperature for those."
-                    input "room${roomNumber}Mode${modeNumber}Modes", "mode", title: "Modes for alternative temperature", required: false, multiple: true, submitOnChange: true
-                    input "room${roomNumber}Mode${modeNumber}Temp", "decimal", title: "Alternative temperature", required: false
+                    input "room${roomNumber}Mode${modeNumber}Modes", "mode", title: "Modes for alternative temperature", required: false, multiple: true
+                    input "room${roomNumber}Mode${modeNumber}Temp", "decimal", title: "Alternative temperature", required: false, submitOnChange: true
                 }
             }
         }
     }
+}
+
+def modeCountForRoom(roomNumber) {
+	return settings.count { key, value -> key.startsWith("room${roomNumber}Mode") && key.endsWith("Modes") }
 }
 
 def findDesiredTemperature(roomNumber) {
@@ -65,7 +69,7 @@ def findDesiredTemperature(roomNumber) {
     def roomMainTemp = settings["room${roomNumber}MainTemp"]
     def roomModeTemp = null
 
-    (1..1).each { modeNumber ->
+    (1..modeCountForRoom(roomNumber)).each { modeNumber ->
         def modeSetting = settings["room${roomNumber}Mode${modeNumber}Modes"]
         if (modeSetting) {
             modeSetting.each { oneMode ->
@@ -156,4 +160,3 @@ private flipState(desiredState, outlets) {
         }
     }
 }
-
