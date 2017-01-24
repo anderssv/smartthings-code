@@ -14,45 +14,45 @@
  *
  */
 definition(
-    name: "Heating Control",
-    namespace: "smartthings.f12.no",
-    author: "Anders Sveen <anders@f12.no>",
-    description: "Manages heating for several rooms and several modes.",
-    category: "Green Living",
-    iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
-    iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
-    iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png")
+        name: "Heating Control",
+        namespace: "smartthings.f12.no",
+        author: "Anders Sveen <anders@f12.no>",
+        description: "Manages heating for several rooms and several modes.",
+        category: "Green Living",
+        iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
+        iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
+        iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png")
 
 
 preferences {
-	page(name: "setupPage")
+    page(name: "setupPage")
 }
 
 def setupPage() {
-	if (! settings["numberOfRooms"]) {
-    	settings["numberOfRooms"] = 1
+    if (!settings["numberOfRooms"]) {
+        settings["numberOfRooms"] = 1
     }
-	dynamicPage(name: "setupPage", title: "Set up heat control", install: true, uninstall: true) {
-    	section("Defaults") {
-        	input "numberOfRooms", "number", title: "Number of rooms", defaultValue: 1, submitOnChange: true
-           	paragraph "This temperature will be used across all rooms if no more specific setting is found."
+    dynamicPage(name: "setupPage", title: "Set up heat control", install: true, uninstall: true) {
+        section("Defaults") {
+            input "numberOfRooms", "number", title: "Number of rooms", defaultValue: 1, submitOnChange: true
+            paragraph "This temperature will be used across all rooms if no more specific setting is found."
             input "defaultMainTemp", "decimal", title: "Default temp"
         }
-        (1..settings["numberOfRooms"]).each { roomNumber -> 
-   	   		section("Room ${roomNumber}") {
-           		input "room${roomNumber}Name", "text", title: "Name (just for convenience)"
-       			input "room${roomNumber}Sensor", "capability.temperatureMeasurement", title: "Sensor"
-               	input "room${roomNumber}Switches", "capability.switch", title: "Switches", multiple: true
-               	paragraph "This is the main temp that is used if none of the modes below matches"
-               	input "room${roomNumber}MainTemp", "decimal", title: "Default temp", required: false
-                (1..1).each { modeNumber -> 
-	               	paragraph "These modes and the associated temperatures is chosen over the temperature specified above. It lets you set a lower temp for some modes."
-	               	input "room${roomNumber}Mode${modeNumber}Modes", "mode", title: "Modes for reduced temperature", required: false, multiple: true
-	               	input "room${roomNumber}Mode${modeNumber}Temp", "decimal", title: "Reduced temperature", required: false
+        (1..settings["numberOfRooms"]).each { roomNumber ->
+            section("Room ${roomNumber}") {
+                input "room${roomNumber}Name", "text", title: "Name (just for convenience)"
+                input "room${roomNumber}Sensor", "capability.temperatureMeasurement", title: "Sensor"
+                input "room${roomNumber}Switches", "capability.switch", title: "Switches", multiple: true
+                paragraph "This is the main temp that is used if none of the modes below matches"
+                input "room${roomNumber}MainTemp", "decimal", title: "Default temp", required: false
+                (1..1).each { modeNumber ->
+                    paragraph "These modes and the associated temperatures is chosen over the temperature specified above. It lets you set a lower temp for some modes."
+                    input "room${roomNumber}Mode${modeNumber}Modes", "mode", title: "Modes for reduced temperature", required: false, multiple: true
+                    input "room${roomNumber}Mode${modeNumber}Temp", "decimal", title: "Reduced temperature", required: false
                 }
-       		}
-		}
-	}
+            }
+        }
+    }
 }
 
 def findDesiredTemperature(roomNumber) {
@@ -60,83 +60,83 @@ def findDesiredTemperature(roomNumber) {
 
     def roomMainTemp = settings["room${roomNumber}MainTemp"]
     def roomModeTemp = null
-    
+
     (1..1).each { modeNumber ->
-    	def modeSetting = settings["room${roomNumber}Mode${modeNumber}Modes"]
+        def modeSetting = settings["room${roomNumber}Mode${modeNumber}Modes"]
         if (modeSetting) {
-        	modeSetting.each { oneMode ->
+            modeSetting.each { oneMode ->
                 if (oneMode.equals(location.currentMode.name)) {
                     roomModeTemp = settings["room${roomNumber}Mode${modeNumber}Temp"]
                 }
-			}
+            }
         }
     }
-    
+
     if (roomModeTemp) {
-    	log.debug("Selected temp based on mode (${location.currentMode.name}) for room number ${roomNumber}")
-    	desiredTemp = roomModeTemp
+        log.debug("Selected temp based on mode (${location.currentMode.name}) for room number ${roomNumber}")
+        desiredTemp = roomModeTemp
     } else if (roomMainTemp) {
-    	log.debug("Selected temp based on default for room for room number ${roomNumber}")
-    	desiredTemp = roomMainTemp
+        log.debug("Selected temp based on default for room for room number ${roomNumber}")
+        desiredTemp = roomMainTemp
     } else {
-    	log.debug("Selected default value for any room for room number ${roomNumber}")
+        log.debug("Selected default value for any room for room number ${roomNumber}")
     }
-    
+
     return desiredTemp
 }
 
 def updated() {
-	log.debug "Updated with settings: ${settings}"
+    log.debug "Updated with settings: ${settings}"
 
-	unsubscribe()
-	initialize()
+    unsubscribe()
+    initialize()
 }
 
 def installed() {
-	log.debug "Installed with settings: ${settings}"
+    log.debug "Installed with settings: ${settings}"
 
-	initialize()
+    initialize()
 }
 
 def initialize() {
-	def sensors = new ArrayList()
+    def sensors = new ArrayList()
 
-	(1..settings["numberOfRooms"]).each { roomNumber ->
-       	def currentSensor = settings["room${roomNumber}Sensor"]
+    (1..settings["numberOfRooms"]).each { roomNumber ->
+        def currentSensor = settings["room${roomNumber}Sensor"]
         if (currentSensor) {
-           	sensors.add(currentSensor)
-    	}        
+            sensors.add(currentSensor)
+        }
     }
 
     sensors.each {
-    	subscribe(it, "temperature", temperatureHandler)
+        subscribe(it, "temperature", temperatureHandler)
     }
     log.debug("Subscribed to ${sensors.size} sensor(s)")
 }
 
-def temperatureHandler(evt) {    
+def temperatureHandler(evt) {
     def allSensors = settings.findAll { it.key.endsWith("Sensor") }
     def registeredRoomSensors = allSensors.findAll { it.value.toString().equals(evt.getDevice().toString()) }
 
-	registeredRoomSensors.each { currentSensor ->
-	    def currentRoom = currentSensor.key.replaceAll("Sensor", "").replaceAll("room", "")
-    	def currentRoomName = settings["room${currentRoom}Name"]
+    registeredRoomSensors.each { currentSensor ->
+        def currentRoom = currentSensor.key.replaceAll("Sensor", "").replaceAll("room", "")
+        def currentRoomName = settings["room${currentRoom}Name"]
         def currentRoomSwitches = settings["room${currentRoom}Switches"]
-    
-    	def desiredTemp = findDesiredTemperature(currentRoom)
-    	def currentTemp = evt.doubleValue
-    
-    	log.debug("Desired temp is ${desiredTemp} in room ${currentRoomName} ${currentRoom} with current value ${currentTemp}")
-    
-    	def threshold = 0.5
-    	if (desiredTemp - currentTemp >= threshold) {
-       		log.debug("Current temp (${currentTemp}) is lower than desired (${desiredTemp}) in room ${currentRoomName} (${currentRoom}). Switching on.")
-        	flipState("on", currentRoomSwitches)
-    	} else if (currentTemp - desiredTemp >= threshold) {
-        	log.debug("Current temp (${currentTemp}) is higher than desired (${desiredTemp}) in room ${currentRoomName} (${currentRoom}). Switching off.")
-        	flipState("off", currentRoomSwitches)
-    	}
-	}    
+
+        def desiredTemp = findDesiredTemperature(currentRoom)
+        def currentTemp = evt.doubleValue
+
+        log.debug("Desired temp is ${desiredTemp} in room ${currentRoomName} ${currentRoom} with current value ${currentTemp}")
+
+        def threshold = 0.5
+        if (desiredTemp - currentTemp >= threshold) {
+            log.debug("Current temp (${currentTemp}) is lower than desired (${desiredTemp}) in room ${currentRoomName} (${currentRoom}). Switching on.")
+            flipState("on", currentRoomSwitches)
+        } else if (currentTemp - desiredTemp >= threshold) {
+            log.debug("Current temp (${currentTemp}) is higher than desired (${desiredTemp}) in room ${currentRoomName} (${currentRoom}). Switching off.")
+            flipState("off", currentRoomSwitches)
+        }
+    }
 }
 
 private flipState(desiredState, outlets) {
