@@ -33,11 +33,12 @@ def setupPage() {
         settings["numberOfRooms"] = 1
     }
     dynamicPage(name: "setupPage", title: "Set up heat control", install: true, uninstall: true) {
-        section("Defaults") {
+        section("General options and defaults", hideable: true) {
             input "numberOfRooms", "number", title: "Number of rooms", defaultValue: 1, submitOnChange: true
             paragraph "This temperature will be used across all rooms if no more specific setting is found."
             input "defaultMainTemp", "decimal", title: "Default thermostat temperature"
         }
+        section("The separate rooms are listed below. If only sensor and switches are specified in a room, the defaults above will be used.")
         (1..settings["numberOfRooms"]).each { roomNumber ->
             def modeSections = modeCountForRoom(roomNumber)
             if (modeSections == null) {
@@ -70,31 +71,55 @@ def modeCountForRoom(roomNumber) {
     return settings.count { key, value -> key.startsWith("room${roomNumber}Mode") && key.endsWith("Modes") && !value.empty }
 }
 
-def findDesiredTemperature(roomNumber) {
-    def desiredTemp = defaultMainTemp
-
-    def roomMainTemp = settings["room${roomNumber}MainTemp"]
-    def roomModeTemp = null
-
-    (1..modeCountForRoom(roomNumber)).each { modeNumber ->
-        def modeSetting = settings["room${roomNumber}Mode${modeNumber}Modes"]
-        if (modeSetting) {
-            modeSetting.each { oneMode ->
-                if (oneMode.equals(location.currentMode.name)) {
-                    roomModeTemp = settings["room${roomNumber}Mode${modeNumber}Temp"]
+def settingsToRooms() {
+	def roomMap = [:]
+    (1..settings["numberOfRooms"]).each { int roomNumber ->
+    	def currentRoomMap = [:]
+        def modesMap = [:]
+        currentRoomMap["modes"] = modesMap
+        
+		settings
+    		.findAll { key, value -> key.startsWith("room${roomNumber}") }
+            .each { key, value ->
+            	if (key.startsWith("room${roomNumber}Mode")) {
+                	// TODO This will fail if modes > 9
+                	int modeNumber = Integer.parseInt(key.replaceAll("room${roomNumber}Mode", "").take(1))
+                	def attributeName = key.replaceAll("room${roomNumber}Mode${modeNumber}", "")
+                    if (!modesMap.containsKey(modeNumber)) {
+                    	modesMap[modeNumber] = [:]
+                    }
+                    modesMap[modeNumber][attributeName] = value
+                } else {
+                    def attributeName = key.replaceAll("room${roomNumber}", "")
+                    currentRoomMap[attributeName] = value
                 }
+        	}
+        roomMap[roomNumber] = currentRoomMap
+    }
+    
+    return roomMap
+}
+
+def Double findDesiredTemperature(Map room) {
+    Double desiredTemp = defaultMainTemp
+    Double roomModeTemp = null
+
+	room.modes.each { modeNumber, modeSettings ->
+        modeSettings.Modes.each { oneMode ->
+            if (oneMode.equals(location.currentMode.name)) {
+                roomModeTemp = modeSettings.Temp
             }
         }
     }
 
     if (roomModeTemp) {
-        log.debug("Selected temp based on mode (${location.currentMode.name}) for room number ${roomNumber}")
+        log.debug("Selected temp based on mode (${location.currentMode.name}) for room '${room.Name}'")
         desiredTemp = roomModeTemp
-    } else if (roomMainTemp) {
-        log.debug("Selected temp based on default for room for room number ${roomNumber}")
-        desiredTemp = roomMainTemp
+    } else if (room.MainTemp) {
+        log.debug("Selected temp based on default for room for room '${room.Name}'")
+        desiredTemp = room.MainTemp
     } else {
-        log.debug("Selected default value for any room for room number ${roomNumber}")
+        log.debug("Selected default value for any room for room '${room.Name}'")
     }
 
     return desiredTemp
@@ -114,48 +139,35 @@ def installed() {
 }
 
 def initialize() {
-    def sensors = new ArrayList()
-
-    (1..settings["numberOfRooms"]).each { roomNumber ->
-        def currentSensor = settings["room${roomNumber}Sensor"]
-        if (currentSensor) {
-            sensors.add(currentSensor)
-        }
+	settingsToRooms().each { roomNumber, room ->
+        subscribe(room.Sensor, "temperature", temperatureHandler)
+        log.debug("Subscribed to sensor '${room.Sensor}'")
     }
-
-    sensors.each {
-        subscribe(it, "temperature", temperatureHandler)
-    }
-    log.debug("Subscribed to ${sensors.size} sensor(s)")
 }
 
 def temperatureHandler(evt) {
-    def allSensors = settings.findAll { it.key.endsWith("Sensor") }
-    def registeredRoomSensors = allSensors.findAll { it.value.toString().equals(evt.getDevice().toString()) }
+	settingsToRooms()
+    	.findAll { key, room -> room.Sensor.toString().equals(evt.getDevice().toString()) }
+		.each { key, room ->
+        	log.debug("Found sensor, handling...")
+        	Double desiredTemp = findDesiredTemperature(room)
+        	Double currentTemp = evt.doubleValue
 
-    registeredRoomSensors.each { currentSensor ->
-        def currentRoom = currentSensor.key.replaceAll("Sensor", "").replaceAll("room", "")
-        def currentRoomName = settings["room${currentRoom}Name"]
-        def currentRoomSwitches = settings["room${currentRoom}Switches"]
+        	log.debug("Desired temp is ${desiredTemp} in room ${room.Name} with current value ${currentTemp}")
 
-        def desiredTemp = findDesiredTemperature(currentRoom)
-        def currentTemp = evt.doubleValue
-
-        log.debug("Desired temp is ${desiredTemp} in room ${currentRoomName} ${currentRoom} with current value ${currentTemp}")
-
-        def threshold = 0.5
-        if (desiredTemp - currentTemp >= threshold) {
-            log.debug("Current temp (${currentTemp}) is lower than desired (${desiredTemp}) in room ${currentRoomName} (${currentRoom}). Switching on.")
-            flipState("on", currentRoomSwitches)
-        } else if (currentTemp - desiredTemp >= threshold) {
-            log.debug("Current temp (${currentTemp}) is higher than desired (${desiredTemp}) in room ${currentRoomName} (${currentRoom}). Switching off.")
-            flipState("off", currentRoomSwitches)
-        }
-    }
+        	Double threshold = 0.5
+        	if (desiredTemp - currentTemp >= threshold) {
+	            log.debug("Current temp (${currentTemp}) is lower than desired (${desiredTemp}) in room ${room.Name}. Switching on.")
+	            flipState("on", room.Switches)
+	        } else if (currentTemp - desiredTemp >= threshold) {
+	            log.debug("Current temp (${currentTemp}) is higher than desired (${desiredTemp}) in room ${room.Name}. Switching off.")
+	            flipState("off", room.Switches)
+	        }
+    	}
 }
 
 private flipState(desiredState, outlets) {
-    def wrongState = outlets.findAll { outlet -> outlet.currentValue("switch") != desiredState }
+    List wrongState = outlets.findAll { outlet -> outlet.currentValue("switch") != desiredState }
 
     log.debug "FLIPSTATE: Found ${wrongState.size()} outlets in wrong state (Target state: $desiredState) ..."
     wrongState.each { outlet ->
