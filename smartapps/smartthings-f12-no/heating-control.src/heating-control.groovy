@@ -43,24 +43,31 @@ def setupPage() {
             if (modeSections == null) {
                 modeSections = 1
             }
-            section("Room ${roomNumber}") {
+            def roomTitle = "Unnamed room"
+            def hidden = false
+            if (settings["room${roomNumber}Name"]) {
+            	roomTitle = settings["room${roomNumber}Name"]
+                hidden = true
+            }
+            section("Room: ${roomTitle}", hideable: true, hidden: hidden) {
                 input "room${roomNumber}Name", "text", title: "Name", description: "Name for convenience"
                 input "room${roomNumber}Sensor", "capability.temperatureMeasurement", title: "Temperature Sensor"
                 input "room${roomNumber}Switches", "capability.switch", title: "Switches to manage", multiple: true
                 input "room${roomNumber}MainTemp", "decimal", title: "Thermostat temperature", required: false, description: "The desired temperature for the room."
 
-                (1..modeSections + 1).each { modeNumber ->
-                    paragraph "----------------------------------------\nSelect modes below to have a different temperature for those."
+                (1..modeSections).each { modeNumber ->
+                    paragraph " ===   Mode specific temperature   ==="
                     input "room${roomNumber}Mode${modeNumber}Modes", "mode", title: "Modes for alternative temperature", required: false, multiple: true
                     input "room${roomNumber}Mode${modeNumber}Temp", "decimal", title: "Alternative temperature", required: false, submitOnChange: true
                 }
+                input "room${roomNumber}Mode${modeSections+1}Modes", "mode", title: "(+) Select modes here to add more sections", required: false, multiple: true, submitOnChange: true
             }
         }
     }
 }
 
 def modeCountForRoom(roomNumber) {
-    return settings.count { key, value -> key.startsWith("room${roomNumber}Mode") && key.endsWith("Modes") }
+	return settings.count { key, value -> key.startsWith("room${roomNumber}Mode") && key.endsWith("Modes") && !value.empty }
 }
 
 def findDesiredTemperature(roomNumber) {
