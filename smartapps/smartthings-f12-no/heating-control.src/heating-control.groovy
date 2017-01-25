@@ -72,31 +72,31 @@ def modeCountForRoom(roomNumber) {
 }
 
 def settingsToRooms() {
-	def roomMap = [:]
+    def roomMap = [:]
     (1..settings["numberOfRooms"]).each { int roomNumber ->
-    	def currentRoomMap = [:]
+        def currentRoomMap = [:]
         def modesMap = [:]
         currentRoomMap["modes"] = modesMap
-        
-		settings
-    		.findAll { key, value -> key.startsWith("room${roomNumber}") }
-            .each { key, value ->
-            	if (key.startsWith("room${roomNumber}Mode")) {
-                	// TODO This will fail if modes > 9
-                	int modeNumber = Integer.parseInt(key.replaceAll("room${roomNumber}Mode", "").take(1))
-                	def attributeName = key.replaceAll("room${roomNumber}Mode${modeNumber}", "")
-                    if (!modesMap.containsKey(modeNumber)) {
-                    	modesMap[modeNumber] = [:]
-                    }
-                    modesMap[modeNumber][attributeName] = value
-                } else {
-                    def attributeName = key.replaceAll("room${roomNumber}", "")
-                    currentRoomMap[attributeName] = value
+
+        settings
+                .findAll { key, value -> key.startsWith("room${roomNumber}") }
+                .each { key, value ->
+            if (key.startsWith("room${roomNumber}Mode")) {
+                // TODO This will fail if modes > 9
+                int modeNumber = Integer.parseInt(key.replaceAll("room${roomNumber}Mode", "").take(1))
+                def attributeName = key.replaceAll("room${roomNumber}Mode${modeNumber}", "")
+                if (!modesMap.containsKey(modeNumber)) {
+                    modesMap[modeNumber] = [:]
                 }
-        	}
+                modesMap[modeNumber][attributeName] = value
+            } else {
+                def attributeName = key.replaceAll("room${roomNumber}", "")
+                currentRoomMap[attributeName] = value
+            }
+        }
         roomMap[roomNumber] = currentRoomMap
     }
-    
+
     return roomMap
 }
 
@@ -104,7 +104,7 @@ def Double findDesiredTemperature(Map room) {
     Double desiredTemp = defaultMainTemp
     Double roomModeTemp = null
 
-	room.modes.each { modeNumber, modeSettings ->
+    room.modes.each { modeNumber, modeSettings ->
         modeSettings.Modes.each { oneMode ->
             if (oneMode.equals(location.currentMode.name)) {
                 roomModeTemp = modeSettings.Temp
@@ -139,31 +139,31 @@ def installed() {
 }
 
 def initialize() {
-	settingsToRooms().each { roomNumber, room ->
+    settingsToRooms().each { roomNumber, room ->
         subscribe(room.Sensor, "temperature", temperatureHandler)
         log.debug("Subscribed to sensor '${room.Sensor}'")
     }
 }
 
 def temperatureHandler(evt) {
-	settingsToRooms()
-    	.findAll { key, room -> room.Sensor.toString().equals(evt.getDevice().toString()) }
-		.each { key, room ->
-        	log.debug("Found sensor, handling...")
-        	Double desiredTemp = findDesiredTemperature(room)
-        	Double currentTemp = evt.doubleValue
+    settingsToRooms()
+            .findAll { key, room -> room.Sensor.toString().equals(evt.getDevice().toString()) }
+            .each { key, room ->
+        log.debug("Found sensor, handling...")
+        Double desiredTemp = findDesiredTemperature(room)
+        Double currentTemp = evt.doubleValue
 
-        	log.debug("Desired temp is ${desiredTemp} in room ${room.Name} with current value ${currentTemp}")
+        log.debug("Desired temp is ${desiredTemp} in room ${room.Name} with current value ${currentTemp}")
 
-        	Double threshold = 0.5
-        	if (desiredTemp - currentTemp >= threshold) {
-	            log.debug("Current temp (${currentTemp}) is lower than desired (${desiredTemp}) in room ${room.Name}. Switching on.")
-	            flipState("on", room.Switches)
-	        } else if (currentTemp - desiredTemp >= threshold) {
-	            log.debug("Current temp (${currentTemp}) is higher than desired (${desiredTemp}) in room ${room.Name}. Switching off.")
-	            flipState("off", room.Switches)
-	        }
-    	}
+        Double threshold = 0.5
+        if (desiredTemp - currentTemp >= threshold) {
+            log.debug("Current temp (${currentTemp}) is lower than desired (${desiredTemp}) in room ${room.Name}. Switching on.")
+            flipState("on", room.Switches)
+        } else if (currentTemp - desiredTemp >= threshold) {
+            log.debug("Current temp (${currentTemp}) is higher than desired (${desiredTemp}) in room ${room.Name}. Switching off.")
+            flipState("off", room.Switches)
+        }
+    }
 }
 
 private flipState(desiredState, outlets) {
