@@ -46,7 +46,7 @@ def setupPage() {
             def roomTitle = "Unnamed room"
             def hidden = false
             if (settings["room${roomNumber}Name"]) {
-            	roomTitle = settings["room${roomNumber}Name"]
+                roomTitle = settings["room${roomNumber}Name"]
                 hidden = true
             }
             section("Room: ${roomTitle}", hideable: true, hidden: hidden) {
@@ -60,14 +60,14 @@ def setupPage() {
                     input "room${roomNumber}Mode${modeNumber}Modes", "mode", title: "Modes for alternative temperature", required: false, multiple: true
                     input "room${roomNumber}Mode${modeNumber}Temp", "decimal", title: "Alternative temperature", required: false, submitOnChange: true
                 }
-                input "room${roomNumber}Mode${modeSections+1}Modes", "mode", title: "(+) Select modes here to add more sections", required: false, multiple: true, submitOnChange: true
+                input "room${roomNumber}Mode${modeSections + 1}Modes", "mode", title: "(+) Select modes here to add more sections", required: false, multiple: true, submitOnChange: true
             }
         }
     }
 }
 
 def modeCountForRoom(roomNumber) {
-	return settings.count { key, value -> key.startsWith("room${roomNumber}Mode") && key.endsWith("Modes") && !value.empty }
+    return settings.count { key, value -> key.startsWith("room${roomNumber}Mode") && key.endsWith("Modes") && !value.empty }
 }
 
 def findDesiredTemperature(roomNumber) {
