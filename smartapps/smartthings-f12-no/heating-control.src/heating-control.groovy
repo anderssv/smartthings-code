@@ -100,13 +100,13 @@ def settingsToRooms() {
     return roomMap
 }
 
-def Double findDesiredTemperature(Map room) {
+def Double findDesiredTemperature(Map room, mode) {
     Double desiredTemp = defaultMainTemp
     Double roomModeTemp = null
 
     room.modes.each { modeNumber, modeSettings ->
         modeSettings.Modes.each { oneMode ->
-            if (oneMode.equals(location.currentMode.name)) {
+            if (oneMode.equals(mode)) {
                 roomModeTemp = modeSettings.Temp
             }
         }
@@ -125,44 +125,18 @@ def Double findDesiredTemperature(Map room) {
     return desiredTemp
 }
 
-def updated() {
-    log.debug "Updated with settings: ${settings}"
+def evaluateRoom(room, mode, Double currentTemp) {
+    Double desiredTemp = findDesiredTemperature(room, mode)
 
-    unsubscribe()
-    initialize()
-}
+    log.debug("Desired temp is ${desiredTemp} in room ${room.Name} with current value ${currentTemp}")
 
-def installed() {
-    log.debug "Installed with settings: ${settings}"
-
-    initialize()
-}
-
-def initialize() {
-    settingsToRooms().each { roomNumber, room ->
-        subscribe(room.Sensor, "temperature", temperatureHandler)
-        log.debug("Subscribed to sensor '${room.Sensor}'")
-    }
-}
-
-def temperatureHandler(evt) {
-    settingsToRooms()
-            .findAll { key, room -> room.Sensor.toString().equals(evt.getDevice().toString()) }
-            .each { key, room ->
-        log.debug("Found sensor, handling...")
-        Double desiredTemp = findDesiredTemperature(room)
-        Double currentTemp = evt.doubleValue
-
-        log.debug("Desired temp is ${desiredTemp} in room ${room.Name} with current value ${currentTemp}")
-
-        Double threshold = 0.5
-        if (desiredTemp - currentTemp >= threshold) {
-            log.debug("Current temp (${currentTemp}) is lower than desired (${desiredTemp}) in room ${room.Name}. Switching on.")
-            flipState("on", room.Switches)
-        } else if (currentTemp - desiredTemp >= threshold) {
-            log.debug("Current temp (${currentTemp}) is higher than desired (${desiredTemp}) in room ${room.Name}. Switching off.")
-            flipState("off", room.Switches)
-        }
+    Double threshold = 0.5
+    if (desiredTemp - currentTemp >= threshold) {
+        log.debug("Current temp (${currentTemp}) is lower than desired (${desiredTemp}) in room ${room.Name}. Switching on.")
+        flipState("on", room.Switches)
+    } else if (currentTemp - desiredTemp >= threshold) {
+        log.debug("Current temp (${currentTemp}) is higher than desired (${desiredTemp}) in room ${room.Name}. Switching off.")
+        flipState("off", room.Switches)
     }
 }
 
@@ -178,5 +152,42 @@ private flipState(desiredState, outlets) {
     }
     if (wrongState.size > 0) {
     	log.debug "Changed ${wrongState.size()} outlets in wrong state (Target state: $desiredState) ..."
+    }
+}
+
+def modeHandler(event) {
+	log.debug("Received mode change event. Evaluating all rooms.")
+    settingsToRooms().each { key, room ->
+    	evaluateRoom(room, location.currentMode.name, room.Sensor.currentTemperature)
+    }
+}
+
+def temperatureHandler(evt) {
+    settingsToRooms()
+            .findAll { key, room -> room.Sensor.toString().equals(evt.getDevice().toString()) }
+            .each { key, room ->
+        log.debug("Found sensor, handling...")
+        evaluateRoom(room, location.currentMode.name, evt.doubleValue)
+    }
+}
+
+def updated() {
+    log.debug "Updated with settings: ${settings}"
+
+    unsubscribe()
+    initialize()
+}
+
+def installed() {
+    log.debug "Installed with settings: ${settings}"
+
+    initialize()
+}
+
+def initialize() {
+	subscribe(location, "mode", modeHandler)
+    settingsToRooms().each { roomNumber, room ->
+        subscribe(room.Sensor, "temperature", temperatureHandler)
+        log.debug("Subscribed to sensor '${room.Sensor}'")
     }
 }
