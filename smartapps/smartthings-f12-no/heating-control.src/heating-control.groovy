@@ -169,13 +169,14 @@ def temperatureHandler(evt) {
 private flipState(desiredState, outlets) {
     List wrongState = outlets.findAll { outlet -> outlet.currentValue("switch") != desiredState }
 
-    log.debug "FLIPSTATE: Found ${wrongState.size()} outlets in wrong state (Target state: $desiredState) ..."
     wrongState.each { outlet ->
-        log.debug "Flipping '$outlet' ${desiredState} ..."
         if (desiredState == "on") {
             outlet.on()
         } else {
             outlet.off()
         }
+    }
+    if (wrongState.size > 0) {
+    	log.debug "Changed ${wrongState.size()} outlets in wrong state (Target state: $desiredState) ..."
     }
 }
