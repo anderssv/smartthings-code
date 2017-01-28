@@ -151,14 +151,14 @@ private flipState(desiredState, outlets) {
         }
     }
     if (wrongState.size > 0) {
-    	log.debug "Changed ${wrongState.size()} outlets in wrong state (Target state: $desiredState) ..."
+        log.debug "Changed ${wrongState.size()} outlets in wrong state (Target state: $desiredState) ..."
     }
 }
 
 def modeHandler(event) {
-	log.debug("Received mode change event. Evaluating all rooms.")
+    log.debug("Received mode change event. Evaluating all rooms.")
     settingsToRooms().each { key, room ->
-    	evaluateRoom(room, location.currentMode.name, room.Sensor.currentTemperature)
+        evaluateRoom(room, location.currentMode.name, room.Sensor.currentTemperature)
     }
 }
 
@@ -185,7 +185,7 @@ def installed() {
 }
 
 def initialize() {
-	subscribe(location, "mode", modeHandler)
+    subscribe(location, "mode", modeHandler)
     settingsToRooms().each { roomNumber, room ->
         subscribe(room.Sensor, "temperature", temperatureHandler)
         log.debug("Subscribed to sensor '${room.Sensor}'")
