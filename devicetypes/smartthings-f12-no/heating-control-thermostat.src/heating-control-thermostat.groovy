@@ -14,62 +14,62 @@
  *
  */
 metadata {
-	definition (name: "Heating Control Thermostat", namespace: "smartthings.f12.no", author: "Anders Sveen <anders@f12.no>") {
-		capability "Thermostat"
+    definition(name: "Heating Control Thermostat", namespace: "smartthings.f12.no", author: "Anders Sveen <anders@f12.no>") {
+        capability "Thermostat"
 
-		command "temperatureUp"
-		command "temperatureDown"
-	}
+        command "temperatureUp"
+        command "temperatureDown"
+    }
 
 
-	simulator {
-		// TODO: define status and reply messages here
-	}
+    simulator {
+        // TODO: define status and reply messages here
+    }
 
-	tiles {
-		multiAttributeTile(name:"thermostatFull", type:"thermostat", width:6, height:4) {
-    		tileAttribute("device.temperature", key: "PRIMARY_CONTROL") {
-        		attributeState("default", label:'${currentValue}', unit:"C")
-    		}
-    		tileAttribute("device.temperature", key: "VALUE_CONTROL") {
-        		attributeState("VALUE_UP", action: "temperatureUp")
-        		attributeState("VALUE_DOWN", action: "temperatureDown")
-    		}
-    		tileAttribute("device.thermostatOperatingState", key: "OPERATING_STATE") {
-        		attributeState("idle", backgroundColor:"#44b621")
-        		attributeState("heating", backgroundColor:"#ffa81e")
-				attributeState("cooling", backgroundColor:"#269bd2")            
-    		}
-    		tileAttribute("device.thermostatMode", key: "THERMOSTAT_MODE") {
-        		attributeState("off", label:'${name}')
-        		attributeState("heat", label:'${name}')
-        		attributeState("cool", label:'${name}')
-        		attributeState("auto", label:'${name}')
-    		}
-    		tileAttribute("device.heatingSetpoint", key: "HEATING_SETPOINT") {
-        		attributeState("default", label:'${currentValue}', unit:"C")
-    		}
-		}
-        valueTile("setpointTile", "device.heatingSetpoint", width: 2, height: 2) {
-        	state "heatingSetpoint", label: '${currentValue}'
+    tiles {
+        multiAttributeTile(name: "thermostatFull", type: "thermostat", width: 6, height: 4) {
+            tileAttribute("device.temperature", key: "PRIMARY_CONTROL") {
+                attributeState("default", label: '${currentValue}', unit: "C")
+            }
+            tileAttribute("device.temperature", key: "VALUE_CONTROL") {
+                attributeState("VALUE_UP", action: "temperatureUp")
+                attributeState("VALUE_DOWN", action: "temperatureDown")
+            }
+            tileAttribute("device.thermostatOperatingState", key: "OPERATING_STATE") {
+                attributeState("idle", backgroundColor: "#44b621")
+                attributeState("heating", backgroundColor: "#ffa81e")
+                attributeState("cooling", backgroundColor: "#269bd2")
+            }
+            tileAttribute("device.thermostatMode", key: "THERMOSTAT_MODE") {
+                attributeState("off", label: '${name}')
+                attributeState("heat", label: '${name}')
+                attributeState("cool", label: '${name}')
+                attributeState("auto", label: '${name}')
+            }
+            tileAttribute("device.heatingSetpoint", key: "HEATING_SETPOINT") {
+                attributeState("default", label: '${currentValue}', unit: "C")
+            }
         }
-		main("thermostatFull")
-	}
+        valueTile("setpointTile", "device.heatingSetpoint", width: 2, height: 2) {
+            state "heatingSetpoint", label: '${currentValue}'
+        }
+        main("thermostatFull")
+    }
 }
 
 def parse(String description) {
-	log.debug "Parsing '${description}'"
+    log.debug "Parsing '${description}'"
 }
 
 def setInitialInformation(temperature, setpoint) {
     sendEvent(name: "heatingSetpoint", value: setpoint)
     sendEvent(name: "thermostatMode", value: "heat")
     updateMode("heating")
-	updateTemperature(temperature)
+    updateTemperature(temperature)
 }
 
 def updateMode(mode, setpoint) {
-	log.debug("Updated mode with ${mode}")
+    log.debug("Updated mode with ${mode}")
     sendEvent(name: "thermostatOperatingState", value: mode)
     sendEvent(name: "heatingSetpoint", value: setpoint)
 }
@@ -81,11 +81,11 @@ def updateTemperature(newTemperature) {
 
 // handle commands
 def temperatureUp() {
-	log.debug "Executing 'temperatureUp'"
-	// TODO: handle 'temperatureUp' command
+    log.debug "Executing 'temperatureUp'"
+    // TODO: handle 'temperatureUp' command
 }
 
 def temperatureDown() {
-	log.debug "Executing 'temperatureDown'"
-	// TODO: handle 'temperatureDown' command
+    log.debug "Executing 'temperatureDown'"
+    // TODO: handle 'temperatureDown' command
 }
