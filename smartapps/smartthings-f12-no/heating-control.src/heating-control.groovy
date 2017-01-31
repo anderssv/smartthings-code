@@ -12,6 +12,10 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
+ * TODO:
+ * - Devices on removal of rooms?
+ * - Keep rooms as state?
+ * - 
  */
 definition(
         name: "Heating Control",
@@ -77,7 +81,8 @@ def settingsToRooms() {
         def currentRoomMap = [:]
         def modesMap = [:]
         currentRoomMap["modes"] = modesMap
-
+		currentRoomMap["Number"] = roomNumber
+        
         settings
                 .findAll { key, value -> key.startsWith("room${roomNumber}") }
                 .each { key, value ->
@@ -130,13 +135,21 @@ def evaluateRoom(room, mode, Double currentTemp) {
 
     log.debug("Desired temp is ${desiredTemp} in room ${room.Name} with current value ${currentTemp}")
 
+    String heatingMode
     Double threshold = 0.5
     if (desiredTemp - currentTemp >= threshold) {
         log.debug("Current temp (${currentTemp}) is lower than desired (${desiredTemp}) in room ${room.Name}. Switching on.")
-        flipState("on", room.Switches)
+        heatingMode = "on"
     } else if (currentTemp - desiredTemp >= threshold) {
         log.debug("Current temp (${currentTemp}) is higher than desired (${desiredTemp}) in room ${room.Name}. Switching off.")
-        flipState("off", room.Switches)
+        heatingMode = "off"
+    }
+
+	def changedMode = flipState(heatingMode, room.Switches)
+    def thermostatDevice = getThermostateDeviceForRoom(room.Number)
+    thermostatDevice.updateTemperature(currentTemp)
+    if (changedMode) {
+    	thermostatDevice.updateMode(heatingMode == "on" ? "heating" : "idle", desiredTemp)
     }
 }
 
@@ -153,6 +166,7 @@ private flipState(desiredState, outlets) {
     if (wrongState.size > 0) {
         log.debug "Changed ${wrongState.size()} outlets in wrong state (Target state: $desiredState) ..."
     }
+    return wrongState.size > 0
 }
 
 def modeHandler(event) {
@@ -171,6 +185,14 @@ def temperatureHandler(evt) {
     }
 }
 
+def deleteChildDevices() {
+    if (getChildDevices().size > 0) {
+    	getChildDevices().each { device ->
+        	deleteChildDevice(device.deviceNetworkId)
+        }
+    }
+}
+
 def updated() {
     log.debug "Updated with settings: ${settings}"
 
@@ -184,10 +206,24 @@ def installed() {
     initialize()
 }
 
+def uninstalled() {
+   	deleteChildDevices()
+}
+
 def initialize() {
     subscribe(location, "mode", modeHandler)
     settingsToRooms().each { roomNumber, room ->
         subscribe(room.Sensor, "temperature", temperatureHandler)
         log.debug("Subscribed to sensor '${room.Sensor}'")
+        def thermostatDevice = getThermostateDeviceForRoom(roomNumber)
+        if (!thermostatDevice) {
+        	addChildDevice(app.namespace, "Heating Control Thermostat", "heating-control-room-${roomNumber}", null, [name: "${room.Name} - Thermostat", room: room])
+        }
+        log.debug("Added virtual thermostat for ${room.Name}")
+        evaluateRoom(room, location.currentMode.name, room.Sensor.currentTemperature)
     }
+}
+
+def getThermostateDeviceForRoom(int roomNumber) {
+	return getChildDevice("heating-control-room-${roomNumber}")
 }
