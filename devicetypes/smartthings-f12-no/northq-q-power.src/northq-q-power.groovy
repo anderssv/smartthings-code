@@ -190,6 +190,7 @@ def refresh() {
 def configure() {
 	log.debug("Configuring device...")
     zwave.configurationV1.configurationSet(parameterNumber: 1, size: 4, scaledConfigurationValue: 1000)    // The number of blinks pr. kwh
+    zwave.configurationV1.configurationSet(parameterNumber: 2, size: 1, scaledConfigurationValue: 1)       // The type of meter, mechanical/electric pulse
 
     zwave.manufacturerSpecificV2.manufacturerSpecificGet().format()
 }
