@@ -24,7 +24,7 @@ metadata {
 
 		command "reset"
 
-		fingerprint inClusters: "0x25,0x32"
+        fingerprint mfr: "0096", prod: "0001", model: "0001"
 	}
 
 	// simulator metadata
@@ -85,6 +85,7 @@ def parse(String description) {
 	if(description == "updated") return 
 	def cmd = zwave.parse(description, [0x20: 1, 0x32: 1, 0x72: 2])
 	if (cmd) {
+  		log.debug "$device.displayName: Command received: $cmd"
 		result = zwaveEvent(cmd)
 	}
 	return result
