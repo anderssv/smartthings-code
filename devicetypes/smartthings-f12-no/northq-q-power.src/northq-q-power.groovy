@@ -10,6 +10,10 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
+ *
+ *  Z-Wave alliance device page: http://products.z-wavealliance.org/products/69
+ *  Device homepage: http://northq.com/qpower/
+ *
  */
 metadata {
 	definition (name: "NorthQ Q-Power", namespace: "smartthings.f12.no", author: "Anders Sveen <anders@f12.no>") {
