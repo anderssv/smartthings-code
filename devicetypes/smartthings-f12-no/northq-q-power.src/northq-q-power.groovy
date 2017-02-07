@@ -13,6 +13,7 @@
  *
  *  Z-Wave alliance device page: http://products.z-wavealliance.org/products/69
  *  Device homepage: http://northq.com/qpower/
+ *  Technical specification: https://doc.eedomus.com/files/northq_nq-92021_manuel_us.pdf
  *
  */
 metadata {
@@ -76,13 +77,7 @@ metadata {
 }
 
 def updated() {
-    try {
-        if (!state.MSR) {
-            response(zwave.manufacturerSpecificV2.manufacturerSpecificGet().format())
-        }
-    } catch (e) {
-        log.debug e
-    }
+	response(configure())
 }
 
 def parse(String description) {
@@ -193,6 +188,9 @@ def refresh() {
 }
 
 def configure() {
+	log.debug("Configuring device...")
+    zwave.configurationV1.configurationSet(parameterNumber: 1, size: 4, scaledConfigurationValue: 1000)    // The number of blinks pr. kwh
+
     zwave.manufacturerSpecificV2.manufacturerSpecificGet().format()
 }
 
