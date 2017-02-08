@@ -87,7 +87,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
-    log.debug("Battery level is: ${cmd.batteryLevel}")
+    return createEvent(name: "battery", value: cmd.batteryLevel, unit: "kWh")
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.configurationv2.ConfigurationReport cmd) {
