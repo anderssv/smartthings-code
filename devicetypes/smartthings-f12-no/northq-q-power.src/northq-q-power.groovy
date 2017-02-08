@@ -21,6 +21,7 @@ metadata {
         capability "Energy Meter"
         capability "Configuration"
         capability "Sensor"
+        capability "Battery"
 
         fingerprint mfr: "0096", prod: "0001", model: "0001"
     }
@@ -56,18 +57,11 @@ def parse(String description) {
     return result
 }
 
-def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
-    if (cmd.scale == 0) {
-        createEvent(name: "energy", value: cmd.scaledMeterValue, unit: "kWh")
-    } else if (cmd.scale == 1) {
-        createEvent(name: "energy", value: cmd.scaledMeterValue, unit: "kVAh")
-    } else {
-        log.error("Received meter report with scale ${cmd.scale} , don't know how to interpret that")
-    }
-}
-
 def zwaveEvent(physicalgraph.zwave.commands.wakeupv2.WakeUpNotification cmd) {
-	def allCommands = [zwave.meterV1.meterGet().format()]
+	def allCommands = [
+    	zwave.meterV1.meterGet().format(),
+        zwave.batteryV1.batteryGet().format()
+    ]
     if (state.configurationCommands) { 
     	allCommands = (allCommands + state.configurationCommands) 
     }
@@ -79,6 +73,21 @@ def zwaveEvent(physicalgraph.zwave.commands.wakeupv2.WakeUpNotification cmd) {
     	createEvent(descriptionText: "${device.displayName} woke up", isStateChange: false),
        	response(allCommands)
     ]
+}
+
+def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
+    if (cmd.scale == 0) {
+        createEvent(name: "energy", value: cmd.scaledMeterValue, unit: "kWh")
+    } else if (cmd.scale == 1) {
+    	log.error("Did not think the meter scale was going to be 1")
+        createEvent(name: "energy", value: cmd.scaledMeterValue, unit: "kVAh")
+    } else {
+        log.error("Received meter report with scale ${cmd.scale} , don't know how to interpret that")
+    }
+}
+
+def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
+	log.debug("Battery level is: ${cmd.batteryLevel}")
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.configurationv2.ConfigurationReport cmd) {
@@ -98,7 +107,7 @@ def updated() {
 }
 
 def configure() {
-	log.debug("Configuring device...")
+	log.debug("Preparing configuration. It will be sent next time the device wakes up and checks in...")
     
     state.configurationCommands = [
     	zwave.configurationV1.configurationSet(parameterNumber: 1, size: 4, scaledConfigurationValue: 1000 * 10).format(),    // The number of blinks pr. kwh
