@@ -36,12 +36,19 @@ metadata {
 
     // tile definitions
     tiles {
-        valueTile("energy", "device.energy") {
+        valueTile("energy", "device.energy", width: 3) {
             state "default", label: '${currentValue} kWh'
         }
+        valueTile("battery", "device.battery") {
+            state "default", label: '${currentValue} %'
+        }
 
-        main(["energy"])
-        details(["energy"])
+        main(["energy", "battery"])
+        details(["energy", "battery"])
+    }
+    
+    preferences {
+    	input name: "pulsesPerKwh", type: "number", title: "Pulses/kWh", description: "The number of pulses pr. kWh on your meter", required: true, defaultValue: 1000
     }
 }
 
@@ -110,7 +117,7 @@ def configure() {
     log.debug("Preparing configuration. It will be sent next time the device wakes up and checks in...")
 
     state.configurationCommands = [
-            zwave.configurationV1.configurationSet(parameterNumber: 1, size: 4, scaledConfigurationValue: 1000 * 10).format(),    // The number of blinks pr. kwh
+            zwave.configurationV1.configurationSet(parameterNumber: 1, size: 4, scaledConfigurationValue: pulsesPerKwh.toInteger() * 10).format(),    // The number of blinks pr. kwh
             zwave.configurationV1.configurationSet(parameterNumber: 2, size: 1, scaledConfigurationValue: 1).format()             // The type of meter, mechanical/electric pulse
     ]
 
