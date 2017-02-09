@@ -148,7 +148,7 @@ def parse(String description) {
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv2.SensorMultilevelReport cmd) {
-    log.debug "zwaveEvent: sensormultilevelv2.SensorMultilevelReport"
+    log.debug "zwaveEvent: sensormultilevelv2.SensorMultilevelReport $cmd"
     if (state.debug) log.debug "SensorMultilevelReport(sensorType:${cmd.sensorType}, scale:${cmd.scale}, precision:${cmd.precision}, scaledSensorValue:${cmd.scaledSensorValue}, sensorValue:${cmd.sensorValue}, size:${cmd.size})"
     def map = [value: cmd.scaledSensorValue, displayed: true]
     switch (cmd.sensorType) {
@@ -269,7 +269,8 @@ def configure() {
             zwave.configurationV1.configurationSet(parameterNumber: 41, size: 1, scaledConfigurationValue: par41.toInteger()).format(),     // LED Ring when ON
             zwave.configurationV1.configurationSet(parameterNumber: 42, size: 1, scaledConfigurationValue: par42.toInteger()).format(),     // LED Ring when OFF
             zwave.associationV1.associationSet(groupingIdentifier: 1, nodeId: [zwaveHubNodeId]).format(),
-            zwave.associationV1.associationSet(groupingIdentifier: 2, nodeId: [zwaveHubNodeId]).format(),
-            zwave.associationV1.associationSet(groupingIdentifier: 3, nodeId: [zwaveHubNodeId]).format(),
+            zwave.associationV1.associationRemove(groupingIdentifier: 2, nodeId: [zwaveHubNodeId]).format(),            
+            zwave.associationV1.associationRemove(groupingIdentifier: 3, nodeId: [zwaveHubNodeId]).format(),            
     ], 1500)
+    
 }
