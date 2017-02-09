@@ -269,8 +269,6 @@ def configure() {
             zwave.configurationV1.configurationSet(parameterNumber: 41, size: 1, scaledConfigurationValue: par41.toInteger()).format(),     // LED Ring when ON
             zwave.configurationV1.configurationSet(parameterNumber: 42, size: 1, scaledConfigurationValue: par42.toInteger()).format(),     // LED Ring when OFF
             zwave.associationV1.associationSet(groupingIdentifier: 1, nodeId: [zwaveHubNodeId]).format(),
-            zwave.associationV1.associationRemove(groupingIdentifier: 2, nodeId: [zwaveHubNodeId]).format(),            
-            zwave.associationV1.associationRemove(groupingIdentifier: 3, nodeId: [zwaveHubNodeId]).format(),            
     ], 1500)
     
 }
