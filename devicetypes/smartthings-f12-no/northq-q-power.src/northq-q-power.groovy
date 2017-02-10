@@ -46,9 +46,9 @@ metadata {
         main(["energy", "battery"])
         details(["energy", "battery"])
     }
-    
+
     preferences {
-    	input name: "pulsesPerKwh", type: "number", title: "Pulses/kWh", description: "The number of pulses pr. kWh on your meter", required: true, defaultValue: 1000
+        input name: "pulsesPerKwh", type: "number", title: "Pulses/kWh", description: "The number of pulses pr. kWh on your meter", required: true, defaultValue: 1000
     }
 }
 
