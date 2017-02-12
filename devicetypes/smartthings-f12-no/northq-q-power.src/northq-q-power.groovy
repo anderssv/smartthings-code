@@ -53,7 +53,7 @@ metadata {
     preferences {
         input name: "pulsesPerKwh", type: "number", title: "Pulses/kWh", description: "The number of pulses pr. kWh on your meter", required: true, defaultValue: 1000
         input name: "wakeUpSeconds", type: "number", title: "Seconds between reports", description: "How many seconds before reporting back. WARNING: Lowering this value will impact battery life.", required: true, defaultValue: 900
-	}
+    }
 }
 
 def parse(String description) {
@@ -88,18 +88,18 @@ def zwaveEvent(physicalgraph.zwave.commands.wakeupv2.WakeUpNotification cmd) {
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
-	def events = []
-	def commandTime = new Date()
+    def events = []
+    def commandTime = new Date()
     if (cmd.scale == 0) {
         def newValue = cmd.scaledMeterValue
         if (state.previousValue) {
-        	def diffTime = commandTime.getTime() - state.previousValueDate
+            def diffTime = commandTime.getTime() - state.previousValueDate
             def diffValue = newValue - state.previousValue
-            
+
             def diffHours = diffTime / 1000 / 60 / 60
             def watt = 1000 * diffValue / diffHours
-            
-        	events << createEvent(name: "power", value: Math.round(watt), unit: "W")
+
+            events << createEvent(name: "power", value: Math.round(watt), unit: "W")
         }
         state.previousValue = newValue
         state.previousValueDate = commandTime.getTime()
@@ -138,6 +138,6 @@ def configure() {
             zwave.configurationV1.configurationSet(parameterNumber: 2, size: 1, scaledConfigurationValue: 1).format(),                                // The type of meter, mechanical/electric pulse
             zwave.wakeUpV1.wakeUpIntervalSet(seconds: wakeUpSeconds, nodeid: zwaveHubNodeId).format()                                                 // Set the interval between wake ups
     ]
-    
+
     return []
 }
