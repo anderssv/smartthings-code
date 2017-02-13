@@ -23,9 +23,9 @@ definition(
         author: "Anders Sveen <anders@f12.no>",
         description: "Manages heating for several rooms and several modes.",
         category: "Green Living",
-        iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
-        iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
-        iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png")
+        iconUrl: "http://www.iconsdb.com/icons/preview/soylent-red/temperature-xxl.png",
+        iconX2Url: "http://www.iconsdb.com/icons/preview/soylent-red/temperature-xxl.png",
+        iconX3Url: "http://www.iconsdb.com/icons/preview/soylent-red/temperature-xxl.png")
 
 
 preferences {
