@@ -94,7 +94,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
         Double newValue = cmd.scaledMeterValue
         events << createEvent(name: "energy", value: newValue, unit: "kWh")
 
-		if (state.previousValue) {
+        if (state.previousValue) {
             def diffTime = commandTime.getTime() - state.previousValueDate
             Double diffValue = newValue - state.previousValue
 
