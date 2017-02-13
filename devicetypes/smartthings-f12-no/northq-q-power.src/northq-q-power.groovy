@@ -46,8 +46,8 @@ metadata {
             state "default", label: '${currentValue} %'
         }
 
-        main(["energy", "battery"])
-        details(["energy", "battery"])
+        main(["energy", "power", "battery"])
+        details(["energy", "power", "battery"])
     }
 
     preferences {
@@ -91,19 +91,20 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
     def events = []
     def commandTime = new Date()
     if (cmd.scale == 0) {
-        def newValue = cmd.scaledMeterValue
-        if (state.previousValue) {
-            def diffTime = commandTime.getTime() - state.previousValueDate
-            def diffValue = newValue - state.previousValue
+        Double newValue = cmd.scaledMeterValue
+        events << createEvent(name: "energy", value: newValue, unit: "kWh")
 
-            def diffHours = diffTime / 1000 / 60 / 60
-            def watt = 1000 * diffValue / diffHours
+		if (state.previousValue) {
+            def diffTime = commandTime.getTime() - state.previousValueDate
+            Double diffValue = newValue - state.previousValue
+
+            Double diffHours = diffTime / 1000.0 / 60.0 / 60.0
+            Double watt = 1000.0 * diffValue / diffHours
 
             events << createEvent(name: "power", value: Math.round(watt), unit: "W")
         }
         state.previousValue = newValue
         state.previousValueDate = commandTime.getTime()
-        events << createEvent(name: "energy", value: newValue, unit: "kWh")
     } else {
         log.error("Received meter report with scale ${cmd.scale} , don't know how to interpret that")
     }
