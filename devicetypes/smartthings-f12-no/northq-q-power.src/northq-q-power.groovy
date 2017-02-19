@@ -19,6 +19,7 @@
 metadata {
     definition(name: "NorthQ Q-Power", namespace: "smartthings.f12.no", author: "Anders Sveen <anders@f12.no>") {
         capability "Energy Meter"
+        capability "Power Meter"
         capability "Configuration"
         capability "Sensor"
         capability "Battery"
