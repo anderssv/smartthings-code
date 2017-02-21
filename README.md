@@ -46,7 +46,7 @@ To use you will also need to install the device handler which creates a virtual 
 
 The source:
 - [SmartApp](smartapps/smartthings-f12-no/heating-control.src/heating-control.groovy)
-- [Thermostat Device Handler](devicetypes/heating-control-thermostat.src/heating-control-thermostat.groovy)
+- [Thermostat Device Handler](devicetypes/smartthings-f12-no/heating-control-thermostat.src/heating-control-thermostat.groovy)
 
 # Device Handlers
 
@@ -63,4 +63,4 @@ See the header of the source for links to device and specs.
 [This device](http://northq.com/qpower/) measures energy consumption. I have added a calulated power for each
 period reported.
 
-Go [here to find the device handler](devicetypes/smartthings-f12-no/devicetypes/).
+Go [here to find the device handler](devicetypes/smartthings-f12-no/northq-q-power.src/northq-q-power.groovy).
