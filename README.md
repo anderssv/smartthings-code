@@ -7,7 +7,7 @@ This is my repo with code I write for the SmartThings platform. I might split th
 ## Verisure integration
 
 - [SmartApp](smartapps/smartthings-f12-no/verisure.src/verisure.groovy)
-- [Device Handler](devicetypes/smartthings-f12-no/verisure-alarm.src/verisure-alarm.groovy)
+- [Alarm Device Handler](devicetypes/smartthings-f12-no/verisure-alarm.src/verisure-alarm.groovy)
 
 This SmartApp polls the Verisure alarm at given intervals to update it's state. Default is every 60 seconds, and minimum
 at 15 seconds.
@@ -51,7 +51,7 @@ To use you will also need to install the device handler which creates a virtual 
 
 ## Fibaro Wall Plug ZW5
 
-- [Device Handler](devicetypes/smartthings-f12-no/fibaro-wall-plug-zw5.src/fibaro-wall-plug-zw5.groovy)
+- [Fibaro Wall Plug ZW5 Device Handler](devicetypes/smartthings-f12-no/fibaro-wall-plug-zw5.src/fibaro-wall-plug-zw5.groovy)
 
 This is the ZW5 version of the wall plug.
 
@@ -61,7 +61,7 @@ See the header of the source for links to device and specs.
 
 ## NorthQ Q-Power Power Meter
 
-- [Device Handler]((devicetypes/smartthings-f12-no/northq-q-power.src/northq-q-power.groovy))
+- [NorthQ Q-Power Device Handler]((devicetypes/smartthings-f12-no/northq-q-power.src/northq-q-power.groovy))
 
-[This device](http://northq.com/qpower/) measures energy consumption. I have added a calulated power for each
+[The NorthQ Q-Power Power Meter](http://northq.com/qpower/) measures energy consumption. I have added a calulated power for each
 period reported.
