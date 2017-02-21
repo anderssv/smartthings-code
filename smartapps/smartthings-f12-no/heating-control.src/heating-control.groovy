@@ -15,6 +15,7 @@
  * TODO:
  * - Devices on removal of rooms?
  * - Keep rooms as state?
+ * - Move thermostat code into thermostat devices and interact through setpoints?
  * - 
  */
 definition(

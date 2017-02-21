@@ -12,6 +12,8 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
+ *  Some notes:
+ *  - Will not install if wrong username/password. Sometimes you will get errors from the Verisure API as well, but it's not very likely it will hit you on install.
  */
 definition(
         name: "Verisure",
@@ -73,9 +75,10 @@ def uninstalled() {
 }
 
 def initialize() {
+	log.debug("Verifying credentials by doing first fetch of values")
+	updateAlarmState()
     log.debug("Scheduling Verisure Alarm updates...")
-    //schedule("? 0/30 * * * ?", schedulePollUpdate)
-    poll()
+    runIn(pollinterval, checkPeriodically)
 }
 
 def getAlarmState() {
@@ -83,41 +86,39 @@ def getAlarmState() {
     return state.previousAlarmState
 }
 
-def poll() {
+def checkPeriodically() {
+	try {
+		updateAlarmState()    	
+    } catch (Exception e) {
+    	log.error("Error updating alarm state", e)
+    }
+    runIn(pollinterval, checkPeriodically)
+}
+
+def updateAlarmState() {
     def baseUrl = "https://mypages.verisure.com"
     def loginUrl = baseUrl + "/j_spring_security_check?locale=en_GB"
 
     def alarmState = null
 
-    try {
-        def sessionCookie = login(loginUrl)
-        alarmState = getAlarmState(baseUrl, sessionCookie)
+   	def sessionCookie = login(loginUrl)
+    alarmState = getAlarmState(baseUrl, sessionCookie)
 
-        if (state.previousAlarmState == null) {
-            state.previousAlarmState = alarmState
-        }
-
-        getChildDevices().each { device ->
-            device.sendEvent(name: "alarmstate", value: alarmState)
-        }
-
-        if (alarmState != state.previousAlarmState) {
-            log.debug("Verisure Alarm state changed, execution actions")
-            state.previousAlarmState = alarmState
-            triggerActions(alarmState)
-        }
-
-        log.debug("Verisure Alarm state updated and is: " + alarmState)
-    } catch (Exception e) {
-        log.error("Error updating alarm state", e)
+    if (state.previousAlarmState == null) {
+        state.previousAlarmState = alarmState
     }
 
-    schedulePollUpdate()
-    return alarmState
-}
+    getChildDevices().each { device ->
+        device.sendEvent(name: "alarmstate", value: alarmState)
+    }
 
-def schedulePollUpdate() {
-    runIn(pollinterval, poll)
+    if (alarmState != state.previousAlarmState) {
+        log.debug("Verisure Alarm state changed, execution actions")
+        state.previousAlarmState = alarmState
+        triggerActions(alarmState)
+    }
+
+    log.debug("Verisure Alarm state updated and is: " + alarmState)
 }
 
 def triggerActions(alarmState) {
@@ -150,7 +151,7 @@ def login(loginUrl) {
         if (response.status != 200) {
             throw new IllegalStateException("Could not authenticate. Got response code ${response.status} . Is the username and password correct?")
         }
-
+        
         def cookieHeader = response.headers.'Set-Cookie'
         if (cookieHeader == null) {
             throw new RuntimeException("Could not get session cookie! ${response.status} - ${response.data}")
