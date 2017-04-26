@@ -83,8 +83,10 @@ def zwaveEvent(physicalgraph.zwave.commands.wakeupv2.WakeUpNotification cmd) {
 
     log.debug("Sent ${allCommands.size} commands in response to wake up")
 
-	sendEvent(descriptionText: "${device.displayName} woke up", isStateChange: false)
-	return [response(delayBetween(allCommands, 1000))]
+	return [
+		createEvent(descriptionText: "${device.displayName} woke up", isStateChange: false),
+		response(allCommands)
+	]
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
@@ -92,7 +94,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
     def commandTime = new Date()
     if (cmd.scale == 0) {
         Double newValue = cmd.scaledMeterValue
-        sendEvent(name: "energy", value: newValue, unit: "kWh")
+        events << createEvent(name: "energy", value: newValue, unit: "kWh")
 
         if (state.previousValue) {
             def diffTime = commandTime.getTime() - state.previousValueDate
@@ -101,13 +103,14 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
             Double diffHours = diffTime / 1000.0 / 60.0 / 60.0
             Double watt = 1000.0 * diffValue / diffHours
 
-            sendEvent(name: "power", value: Math.round(watt), unit: "W")
+            events << createEvent(name: "power", value: Math.round(watt), unit: "W")
         }
         state.previousValue = newValue
         state.previousValueDate = commandTime.getTime()
     } else {
         log.error("Received meter report with scale ${cmd.scale} , don't know how to interpret that")
     }
+    return events
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
