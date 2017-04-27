@@ -10,7 +10,7 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- * ===== NodOn Wall Plug =====
+ * ===== NodOn Wall Switch =====
  *
  * This is just pulled from this thread and seems to work: https://community.smartthings.com/t/support-for-nodon-octan-z-wave-remote-dth-in-post-32/33896/32
  *
