@@ -83,10 +83,10 @@ def zwaveEvent(physicalgraph.zwave.commands.wakeupv2.WakeUpNotification cmd) {
 
     log.debug("Sent ${allCommands.size} commands in response to wake up")
 
-	return [
-		createEvent(descriptionText: "${device.displayName} woke up", isStateChange: false),
-		response(allCommands)
-	]
+    return [
+            createEvent(descriptionText: "${device.displayName} woke up", isStateChange: false),
+            response(allCommands)
+    ]
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
