@@ -82,10 +82,11 @@ def zwaveEvent(physicalgraph.zwave.commands.wakeupv2.WakeUpNotification cmd) {
     state.configurationCommands = null
 
     log.debug("Sent ${allCommands.size} commands in response to wake up")
-    return [
-            createEvent(descriptionText: "${device.displayName} woke up", isStateChange: false),
-            response(allCommands)
-    ]
+
+	return [
+		createEvent(descriptionText: "${device.displayName} woke up", isStateChange: false),
+		response(allCommands)
+	]
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
@@ -113,7 +114,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
-    return createEvent(name: "battery", value: cmd.batteryLevel, unit: "kWh")
+    return createEvent(name: "battery", value: cmd.batteryLevel, unit: "percent")
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.configurationv2.ConfigurationReport cmd) {
@@ -127,9 +128,7 @@ def zwaveEvent(physicalgraph.zwave.Command cmd) {
 }
 
 def updated() {
-    configure()
-
-    return []
+    return configure()
 }
 
 def configure() {
