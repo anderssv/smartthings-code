@@ -37,6 +37,7 @@ preferences {
 
   section ("Send this message") {
     input "message", "text", title: "Notification message", description: "Laudry is done!", required: true
+    input "phone", "phone", title: "SMS Notification", description: "Optional phone number to send to", required: false
   }
 }
 
@@ -86,6 +87,9 @@ def cycleOff(evt) {
         log.debug "Cycle ended."
 
         sendPush(message)
+        if (phone) {
+            sendSms(phone, message)
+        }        
     } else {
     	log.debug "Cycle continuing as power is above threshold."
     }
