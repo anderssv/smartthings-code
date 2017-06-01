@@ -90,6 +90,7 @@ def cycleOff(evt) {
         if (phone) {
             sendSms(phone, message)
         }
+        unschedule()
     } else {
         log.debug "Cycle continuing as power is above threshold."
     }
