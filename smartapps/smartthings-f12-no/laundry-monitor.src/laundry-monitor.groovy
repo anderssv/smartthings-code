@@ -39,6 +39,13 @@ preferences {
         input "message", "text", title: "Notification message", description: "Laudry is done!", required: true
         input "phone", "phone", title: "SMS Notification", description: "Optional phone number to send to", required: false
     }
+    
+	section("Flash lights (optional)"){
+		input "switches", "capability.switch", title: "These lights", multiple: true, required: false
+		input "numFlashes", "number", title: "This number of times (default 3)", required: false
+		input "onFor", "number", title: "On for milliseconds (default 1000)", required: false
+		input "offFor", "number", title: "Off for milliseconds (default 1000)", required: false
+	}    
 }
 
 def installed() {
@@ -64,9 +71,8 @@ def handler(evt) {
 
     if (!state.cycleOn && latestPower > cycle_start_power_threshold) {
         cycleOn(evt)
-    }
-    // If power drops below threshold, wait for a few minutes.
-    else if (state.cycleOn && latestPower <= cycle_end_power_threshold) {
+    } else if (state.cycleOn && latestPower <= cycle_end_power_threshold) {
+    	// If power drops below threshold, wait for a few minutes.
         log.debug "Power below threshold. Scheduling end cycle"
         runIn(cycle_end_wait * 60, cycleOff)
     }
@@ -90,8 +96,41 @@ def cycleOff(evt) {
         if (phone) {
             sendSms(phone, message)
         }
+        if (switches && switches.size() > 0) {
+        	flashLights()
+        }
         unschedule()
     } else {
         log.debug "Cycle continuing as power is above threshold."
     }
+}
+
+private flashLights() {
+	def onFor = onFor ?: 1000
+	def offFor = offFor ?: 1000
+	def numFlashes = numFlashes ?: 3
+
+		log.debug "FLASHING $numFlashes times"
+		def initialActionOn = switches.collect{ it.currentSwitch != "on" }
+		def delay = 0L
+		numFlashes.times {
+			log.trace "Switch on after $delay msec"
+			switches.eachWithIndex {s, i ->
+				if (initialActionOn[i]) {
+					s.on(delay: delay)
+				} else {
+					s.off(delay: delay)
+				}
+			}
+			delay += onFor
+			log.trace "Switch off after $delay msec"
+			switches.eachWithIndex {s, i ->
+				if (initialActionOn[i]) {
+					s.off(delay: delay)
+				} else {
+					s.on(delay: delay)
+				}
+			}
+			delay += offFor
+		}
 }
