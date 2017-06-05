@@ -14,6 +14,8 @@
  *
  *  =================================================================================================================
  *
+ *  DO NOT USE, SEE HERE FOR A WORKING UPDATED VERSION: https://community.smartthings.com/t/release-fibaro-wall-plug-zw5-z-wave-dth/86676
+ *
  *  This is an update for the new Fibaro Wall Plug ZW5 that supports Z-Wave Plus.
  *
  *  It is completely based on https://github.com/cscheiene/SmartThingsPublic/blob/master/devicetypes/cscheiene/fibaro-wall-plug.src/fibaro-wall-plug.groovy
