@@ -51,7 +51,7 @@ To use you will also need to install the device handler which creates a virtual 
 
 ## Fibaro Wall Plug ZW5
 
-** Do not use this one. It's not maintained and has bugs. See [her for an working active implementation](https://community.smartthings.com/t/release-fibaro-wall-plug-zw5-z-wave-dth/86676) . **
+**Do not use this one. It's not maintained and has bugs. See [her for an working active implementation](https://community.smartthings.com/t/release-fibaro-wall-plug-zw5-z-wave-dth/86676) .**
 
 - [Fibaro Wall Plug ZW5 Device Handler](devicetypes/smartthings-f12-no/fibaro-wall-plug-zw5.src/fibaro-wall-plug-zw5.groovy)
 
