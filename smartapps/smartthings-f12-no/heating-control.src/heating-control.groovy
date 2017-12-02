@@ -130,11 +130,14 @@ def Double findDesiredTemperature(Map room, mode) {
 }
 
 def evaluateRoom(roomNumber, room, Double currentTemp) {
+    def thermostatDevice = getThermostateDeviceForRoom(room.Number)
+    thermostatDevice.updateTemperature(currentTemp)
+
     Double desiredTemp = getThermostatSetpointForRoom(roomNumber)
 
     log.debug("Desired temp is ${desiredTemp} in room ${room.Name} with current value ${currentTemp}")
 
-    String heatingMode
+    String heatingMode = "off"
     Double threshold = 0.5
     if (desiredTemp - currentTemp >= threshold) {
         log.debug("Current temp (${currentTemp}) is lower than desired (${desiredTemp}) in room ${room.Name}. Switching on.")
@@ -145,8 +148,7 @@ def evaluateRoom(roomNumber, room, Double currentTemp) {
     }
 
     def changedMode = flipState(heatingMode, room.Switches)
-    def thermostatDevice = getThermostateDeviceForRoom(room.Number)
-    thermostatDevice.updateTemperature(currentTemp)
+    // Only update if actually changed any ovens
     if (changedMode) {
         thermostatDevice.updateMode(heatingMode == "on" ? "heating" : "idle", desiredTemp)
     }
