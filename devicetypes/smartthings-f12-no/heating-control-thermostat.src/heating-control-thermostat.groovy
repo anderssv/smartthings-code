@@ -31,7 +31,7 @@ metadata {
             tileAttribute("device.temperature", key: "PRIMARY_CONTROL") {
                 attributeState("default", label: '${currentValue}', unit: "C")
             }
-            tileAttribute("device.temperature", key: "VALUE_CONTROL") {
+            tileAttribute("device.heatingSetpoint", key: "VALUE_CONTROL") {
                 attributeState("VALUE_UP", action: "temperatureUp")
                 attributeState("VALUE_DOWN", action: "temperatureDown")
             }
@@ -49,9 +49,6 @@ metadata {
             tileAttribute("device.heatingSetpoint", key: "HEATING_SETPOINT") {
                 attributeState("default", label: '${currentValue}', unit: "C")
             }
-        }
-        valueTile("setpointTile", "device.heatingSetpoint", width: 2, height: 2) {
-            state "heatingSetpoint", label: '${currentValue}'
         }
         main("thermostatFull")
     }
