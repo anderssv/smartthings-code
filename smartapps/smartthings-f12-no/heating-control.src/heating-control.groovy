@@ -14,9 +14,7 @@
  *
  * TODO:
  * - Devices on removal of rooms?
- * - Keep rooms as state?
- * - Move thermostat code into thermostat devices and interact through setpoints?
- * - 
+ *
  */
 definition(
         name: "Heating Control",
@@ -25,8 +23,8 @@ definition(
         description: "Manages heating for several rooms and several modes.",
         category: "Green Living",
         iconUrl: "http://www.iconsdb.com/icons/preview/soylent-red/temperature-xxl.png",
-        iconX2Url: "http://www.iconsdb.com/icons/preview/soylent-red/temperature-xxl.png",
-        iconX3Url: "http://www.iconsdb.com/icons/preview/soylent-red/temperature-xxl.png")
+        iconX2Url: "https://cdn.thinglink.me/api/image/900776185863077889/1240/10/scaletowidth",
+        iconX3Url: "https://cdn.thinglink.me/api/image/900776185863077889/1240/10/scaletowidth")
 
 
 preferences {
@@ -131,8 +129,8 @@ def Double findDesiredTemperature(Map room, mode) {
     return desiredTemp
 }
 
-def evaluateRoom(room, mode, Double currentTemp) {
-    Double desiredTemp = findDesiredTemperature(room, mode)
+def evaluateRoom(roomNumber, room, Double currentTemp) {
+    Double desiredTemp = getThermostatSetpointForRoom(roomNumber)
 
     log.debug("Desired temp is ${desiredTemp} in room ${room.Name} with current value ${currentTemp}")
 
@@ -171,9 +169,11 @@ private flipState(desiredState, outlets) {
 }
 
 def modeHandler(event) {
-    log.debug("Received mode change event. Evaluating all rooms.")
+    log.debug("Received mode change event. Setting temp and evaluating all rooms.")
     settingsToRooms().each { key, room ->
-        evaluateRoom(room, location.currentMode.name, room.Sensor.currentTemperature)
+        def newSetpoint = findDesiredTemperature(room, location.currentMode.name)
+        getThermostateDeviceForRoom(key).updateMode("idle", newSetpoint)
+        evaluateRoom(key, room, room.Sensor.currentTemperature)
     }
 }
 
@@ -182,7 +182,7 @@ def temperatureHandler(evt) {
             .findAll { key, room -> room.Sensor.toString().equals(evt.getDevice().toString()) }
             .each { key, room ->
         log.debug("Found sensor, handling...")
-        evaluateRoom(room, location.currentMode.name, evt.doubleValue)
+        evaluateRoom(key, room, evt.doubleValue)
     }
 }
 
@@ -212,7 +212,7 @@ def uninstalled() {
 }
 
 def initialize() {
-    subscribe(location, "mode", modeHandler)
+    subscribe(location, modeHandler)
     settingsToRooms().each { roomNumber, room ->
         subscribe(room.Sensor, "temperature", temperatureHandler)
         log.debug("Subscribed to sensor '${room.Sensor}'")
@@ -221,10 +221,14 @@ def initialize() {
         	addChildDevice(app.namespace, "Heating Control Thermostat", "heating-control-room-${roomNumber}", null, [name: "${room.Name} - Thermostat", room: room])
         }
         log.debug("Added virtual thermostat for ${room.Name}")
-        evaluateRoom(room, location.currentMode.name, room.Sensor.currentTemperature)
+        evaluateRoom(roomNumber, room, room.Sensor.currentTemperature)
     }
 }
 
 def getThermostateDeviceForRoom(int roomNumber) {
 	return getChildDevice("heating-control-room-${roomNumber}")
+}
+
+def getThermostatSetpointForRoom(int roomNumber) {
+    return getThermostateDeviceForRoom(roomNumber).currentHeatingSetpoint
 }

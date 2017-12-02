@@ -61,13 +61,6 @@ def parse(String description) {
     log.debug "Parsing '${description}'"
 }
 
-def setInitialInformation(temperature, setpoint) {
-    sendEvent(name: "heatingSetpoint", value: setpoint)
-    sendEvent(name: "thermostatMode", value: "heat")
-    updateMode("heating")
-    updateTemperature(temperature)
-}
-
 def updateMode(mode, setpoint) {
     log.debug("Updated mode with ${mode}")
     sendEvent(name: "thermostatOperatingState", value: mode)
@@ -82,10 +75,12 @@ def updateTemperature(newTemperature) {
 // handle commands
 def temperatureUp() {
     log.debug "Executing 'temperatureUp'"
-    // TODO: handle 'temperatureUp' command
+    def newValue = new Double(device.currentState("heatingSetpoint").value) + 0.5
+    sendEvent(name: "heatingSetpoint", value: newValue)
 }
 
 def temperatureDown() {
     log.debug "Executing 'temperatureDown'"
-    // TODO: handle 'temperatureDown' command
+    def newValue = new Double(device.currentState("heatingSetpoint").value) - 0.5
+    sendEvent(name: "heatingSetpoint", value: newValue)
 }
