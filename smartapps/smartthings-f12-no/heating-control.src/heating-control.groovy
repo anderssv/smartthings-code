@@ -185,10 +185,15 @@ def initialize() {
             thermostatDevice = getThermostateDeviceForRoom(roomNumber)
         }
         log.debug("Added virtual thermostat for ${room.Name}")
+        thermostatDevice.updateMode("idle", findDesiredTemperature(room, location.currentMode.name))
         thermostatDevice.evaluate(room.Switches)
     }
 }
 
 def getThermostateDeviceForRoom(int roomNumber) {
     return getChildDevice("heating-control-room-${roomNumber}")
+}
+
+def getThermostatSetpointForRoom(int roomNumber) {
+    return getThermostateDeviceForRoom(roomNumber).currentHeatingSetpoint
 }
