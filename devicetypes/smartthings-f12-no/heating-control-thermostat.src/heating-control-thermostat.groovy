@@ -58,6 +58,47 @@ def parse(String description) {
     log.debug "Parsing '${description}'"
 }
 
+def evaluate(outlets) {
+    evaluateTemp(device.currentState("heatingSetpoint").value, device.currentState("temperature").value, outlets)
+}
+
+def evaluateTemp(Double setTemp, Double currentTemp, outlets) {
+    log.debug("Desired temp is ${setTemp} in room ${device.name} with current value ${currentTemp}")
+
+    String heatingMode = "off"
+    Double threshold = 0.5
+    if (setTemp - currentTemp >= threshold) {
+        log.debug("Current temp (${currentTemp}) is lower than desired (${setTemp}) in room ${device.name}. Switching on.")
+        heatingMode = "on"
+    } else if (currentTemp - setTemp >= threshold) {
+        log.debug("Current temp (${currentTemp}) is higher than desired (${setTemp}) in room ${device.name}. Switching off.")
+        heatingMode = "off"
+    }
+
+    def changedMode = flipState(heatingMode, outlets)
+    // Only update if actually changed any ovens
+    if (changedMode) {
+        updateMode(heatingMode == "on" ? "heating" : "idle", desiredTemp)
+    }
+}
+
+private flipState(desiredState, outlets) {
+    List wrongState = outlets.findAll { outlet -> outlet.currentValue("switch") != desiredState }
+
+    wrongState.each { outlet ->
+        if (desiredState == "on") {
+            outlet.on()
+        } else {
+            outlet.off()
+        }
+    }
+    if (wrongState.size > 0) {
+        log.debug "Changed ${wrongState.size()} outlets in wrong state (Target state: $desiredState) ..."
+    }
+    return wrongState.size > 0
+}
+
+
 def updateMode(mode, setpoint) {
     log.debug("Updated mode with ${mode}")
     sendEvent(name: "thermostatOperatingState", value: mode)

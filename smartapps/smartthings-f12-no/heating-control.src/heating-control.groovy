@@ -129,53 +129,13 @@ def Double findDesiredTemperature(Map room, mode) {
     return desiredTemp
 }
 
-def evaluateRoom(roomNumber, room, Double currentTemp) {
-    def thermostatDevice = getThermostateDeviceForRoom(room.Number)
-    thermostatDevice.updateTemperature(currentTemp)
-
-    Double desiredTemp = getThermostatSetpointForRoom(roomNumber)
-
-    log.debug("Desired temp is ${desiredTemp} in room ${room.Name} with current value ${currentTemp}")
-
-    String heatingMode = "off"
-    Double threshold = 0.5
-    if (desiredTemp - currentTemp >= threshold) {
-        log.debug("Current temp (${currentTemp}) is lower than desired (${desiredTemp}) in room ${room.Name}. Switching on.")
-        heatingMode = "on"
-    } else if (currentTemp - desiredTemp >= threshold) {
-        log.debug("Current temp (${currentTemp}) is higher than desired (${desiredTemp}) in room ${room.Name}. Switching off.")
-        heatingMode = "off"
-    }
-
-    def changedMode = flipState(heatingMode, room.Switches)
-    // Only update if actually changed any ovens
-    if (changedMode) {
-        thermostatDevice.updateMode(heatingMode == "on" ? "heating" : "idle", desiredTemp)
-    }
-}
-
-private flipState(desiredState, outlets) {
-    List wrongState = outlets.findAll { outlet -> outlet.currentValue("switch") != desiredState }
-
-    wrongState.each { outlet ->
-        if (desiredState == "on") {
-            outlet.on()
-        } else {
-            outlet.off()
-        }
-    }
-    if (wrongState.size > 0) {
-        log.debug "Changed ${wrongState.size()} outlets in wrong state (Target state: $desiredState) ..."
-    }
-    return wrongState.size > 0
-}
-
 def modeHandler(event) {
     log.debug("Received mode change event. Setting temp and evaluating all rooms.")
     settingsToRooms().each { key, room ->
         def newSetpoint = findDesiredTemperature(room, location.currentMode.name)
-        getThermostateDeviceForRoom(key).updateMode("idle", newSetpoint)
-        evaluateRoom(key, room, room.Sensor.currentTemperature)
+        def thermostat = getThermostateDeviceForRoom(key)
+        thermostat.updateMode("idle", newSetpoint)
+        thermostat.evaluate(room.Switches)
     }
 }
 
@@ -184,7 +144,8 @@ def temperatureHandler(evt) {
             .findAll { key, room -> room.Sensor.toString().equals(evt.getDevice().toString()) }
             .each { key, room ->
         log.debug("Found sensor, handling...")
-        evaluateRoom(key, room, evt.doubleValue)
+        def thermostat = getThermostateDeviceForRoom(key)
+        thermostat.evaluate(room.Switches)
     }
 }
 
@@ -221,16 +182,13 @@ def initialize() {
         def thermostatDevice = getThermostateDeviceForRoom(roomNumber)
         if (!thermostatDevice) {
             addChildDevice(app.namespace, "Heating Control Thermostat", "heating-control-room-${roomNumber}", null, [name: "${room.Name} - Thermostat", room: room])
+            thermostatDevice = getThermostateDeviceForRoom(roomNumber)
         }
         log.debug("Added virtual thermostat for ${room.Name}")
-        evaluateRoom(roomNumber, room, room.Sensor.currentTemperature)
+        thermostatDevice.evaluate(room.Switches)
     }
 }
 
 def getThermostateDeviceForRoom(int roomNumber) {
     return getChildDevice("heating-control-room-${roomNumber}")
-}
-
-def getThermostatSetpointForRoom(int roomNumber) {
-    return getThermostateDeviceForRoom(roomNumber).currentHeatingSetpoint
 }
