@@ -80,8 +80,8 @@ def settingsToRooms() {
         def currentRoomMap = [:]
         def modesMap = [:]
         currentRoomMap["modes"] = modesMap
-		currentRoomMap["Number"] = roomNumber
-        
+        currentRoomMap["Number"] = roomNumber
+
         settings
                 .findAll { key, value -> key.startsWith("room${roomNumber}") }
                 .each { key, value ->
@@ -144,11 +144,11 @@ def evaluateRoom(roomNumber, room, Double currentTemp) {
         heatingMode = "off"
     }
 
-	def changedMode = flipState(heatingMode, room.Switches)
+    def changedMode = flipState(heatingMode, room.Switches)
     def thermostatDevice = getThermostateDeviceForRoom(room.Number)
     thermostatDevice.updateTemperature(currentTemp)
     if (changedMode) {
-    	thermostatDevice.updateMode(heatingMode == "on" ? "heating" : "idle", desiredTemp)
+        thermostatDevice.updateMode(heatingMode == "on" ? "heating" : "idle", desiredTemp)
     }
 }
 
@@ -188,8 +188,8 @@ def temperatureHandler(evt) {
 
 def deleteChildDevices() {
     if (getChildDevices().size > 0) {
-    	getChildDevices().each { device ->
-        	deleteChildDevice(device.deviceNetworkId)
+        getChildDevices().each { device ->
+            deleteChildDevice(device.deviceNetworkId)
         }
     }
 }
@@ -208,7 +208,7 @@ def installed() {
 }
 
 def uninstalled() {
-   	deleteChildDevices()
+    deleteChildDevices()
 }
 
 def initialize() {
@@ -218,7 +218,7 @@ def initialize() {
         log.debug("Subscribed to sensor '${room.Sensor}'")
         def thermostatDevice = getThermostateDeviceForRoom(roomNumber)
         if (!thermostatDevice) {
-        	addChildDevice(app.namespace, "Heating Control Thermostat", "heating-control-room-${roomNumber}", null, [name: "${room.Name} - Thermostat", room: room])
+            addChildDevice(app.namespace, "Heating Control Thermostat", "heating-control-room-${roomNumber}", null, [name: "${room.Name} - Thermostat", room: room])
         }
         log.debug("Added virtual thermostat for ${room.Name}")
         evaluateRoom(roomNumber, room, room.Sensor.currentTemperature)
@@ -226,7 +226,7 @@ def initialize() {
 }
 
 def getThermostateDeviceForRoom(int roomNumber) {
-	return getChildDevice("heating-control-room-${roomNumber}")
+    return getChildDevice("heating-control-room-${roomNumber}")
 }
 
 def getThermostatSetpointForRoom(int roomNumber) {
