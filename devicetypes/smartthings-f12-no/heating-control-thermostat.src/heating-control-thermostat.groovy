@@ -65,28 +65,28 @@ def evaluate(outlets) {
 def evaluateTemp(Double setTemp, Double currentTemp, outlets) {
     log.debug("Desired temp is ${setTemp} in room ${device.name} with current temperature of ${currentTemp}")
 
-	def currentMode = device.currentState("thermostatOperatingState").value
+    def currentMode = device.currentState("thermostatOperatingState").value
     def desiredMode = "idle"
 
     String heatingMode = "off"
     Double threshold = 0.5
-    
+
     // Temp too low, start heating
     if (currentMode == "idle" && currentTemp < (setTemp - threshold)) {
         log.debug("Current temp (${currentTemp}) is lower than desired (${setTemp}) in room ${device.name}. Heating.")
-    	desiredMode = "heating"
-    // Heating, not reached max yet
+        desiredMode = "heating"
+        // Heating, not reached max yet
     } else if (currentMode == "heating" && currentTemp < (setTemp + threshold)) {
-    	log.debug("Continuing heating...")
-    	desiredMode = "heating"
+        log.debug("Continuing heating...")
+        desiredMode = "heating"
     } else {
-    	log.debug("Idling...")
+        log.debug("Idling...")
     }
-    
+
     flipState(desiredMode == "heating" ? "on" : "off", outlets)
-    
+
     if (currentMode != desiredMode) {
-    	updateMode(desiredMode, setTemp)
+        updateMode(desiredMode, setTemp)
     }
 }
 
@@ -108,8 +108,8 @@ private flipState(desiredState, outlets) {
 
 
 def updateMode(mode, setpoint) {
-	if (setpoint == null) {
-    	throw new IllegalStateException("Could not update state because of null setpoint")
+    if (setpoint == null) {
+        throw new IllegalStateException("Could not update state because of null setpoint")
     }
     log.debug("Updated mode with ${mode} and temp ${setpoint}")
     sendEvent(name: "thermostatOperatingState", value: mode)
