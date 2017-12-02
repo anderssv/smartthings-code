@@ -37,7 +37,7 @@ metadata {
 
     // tile definitions
     tiles {
-        valueTile("energy", "device.energy", width: 3, canChangeIcon: true) {
+        valueTile("energy", "device.energy", width: 3, height: 2,  canChangeIcon: true) {
             state "default", label: '${currentValue} kWh'
         }
         valueTile("power", "device.power") {
@@ -54,6 +54,7 @@ metadata {
     preferences {
         input name: "pulsesPerKwh", type: "number", title: "Pulses/kWh", description: "The number of pulses pr. kWh on your meter", required: true, defaultValue: 1000
         input name: "wakeUpSeconds", type: "number", title: "Seconds between reports", description: "How many seconds before reporting back. WARNING: Lowering this value will impact battery life.", required: true, defaultValue: 900
+        input name: "baseKwh", type: "number", title: "Meter start value", description: "The number on your meter before you add this device.", required: false, defaultValue: 0
     }
 }
 
@@ -93,7 +94,7 @@ def zwaveEvent(physicalgraph.zwave.commands.meterv1.MeterReport cmd) {
     def events = []
     def commandTime = new Date()
     if (cmd.scale == 0) {
-        Double newValue = cmd.scaledMeterValue
+        Double newValue = cmd.scaledMeterValue + baseKwh
         events << createEvent(name: "energy", value: newValue, unit: "kWh")
 
         if (state.previousValue) {
