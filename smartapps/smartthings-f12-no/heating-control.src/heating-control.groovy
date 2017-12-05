@@ -143,8 +143,9 @@ def temperatureHandler(evt) {
     settingsToRooms()
             .findAll { key, room -> room.Sensor.toString().equals(evt.getDevice().toString()) }
             .each { key, room ->
-        log.debug("Found sensor, handling...")
+        log.debug("Found sensor ${room.Sensor} for ${room.Name}, handling...")
         def thermostat = getThermostateDeviceForRoom(key)
+        thermostat.updateTemperature(evt.value)
         thermostat.evaluate(room.Switches)
     }
 }
