@@ -15,8 +15,24 @@
  */
 metadata {
     definition(name: "Heating Control Thermostat", namespace: "smartthings.f12.no", author: "Anders Sveen <anders@f12.no>") {
-        capability "Thermostat"
+        capability "Thermostat Heating Setpoint"
+        capability "Thermostat Mode"
+        capability "Thermostat Operating State"
 
+
+		// Heating Setpoing
+		command "setHeatingSetpoint"
+        // Thermostat Mode
+        command "auto"
+        command "cool"
+        command "emergencyHeat"
+        command "heat"
+        command "off"
+        command "setThermostatMode"
+        // Thermostat Operating State
+        // None actually                
+        
+        // Internal commands related to logic, only used by the tiles
         command "temperatureUp"
         command "temperatureDown"
     }
@@ -112,22 +128,66 @@ def updateMode(mode, setpoint) {
         throw new IllegalStateException("Could not update state because of null setpoint")
     }
     log.debug("Updated mode with ${mode} and temp ${setpoint}")
-    sendEvent(name: "thermostatOperatingState", value: mode)
-    sendEvent(name: "heatingSetpoint", value: setpoint)
+    mySendEvent(name: "thermostatOperatingState", value: mode)
+    mySendEvent(name: "heatingSetpoint", value: setpoint)
 }
 
 def updateTemperature(newTemperature) {
     log.debug("Set temperature: ${newTemperature}")
-    sendEvent(name: "temperature", value: newTemperature)
+    mySendEvent(name: "temperature", value: newTemperature)
+}
+
+// Capability methods
+def setHeatingSetpoint(newTemp) {
+    mySendEvent(name: "heatingSetpoint", value: newTemp)
+}
+
+def auto() {
+	log.debug("auto()")
+}
+
+def cool() {
+	log.debug("cool()")
+}
+
+def emergencyHeat() {
+	log.debug("emergencyHeat()")
+}
+
+def heat() {
+	log.debug("heat()")
+}
+
+def off() {
+	log.debug("off()")
+}
+
+def setCoolingSetpoint(setpoint) {
+	log.debug("setCoolingSetpoint()" + setpoint)
+}
+
+def setSchedule(schedule) {
+	log.debug("setSchedule()" + schedule)
+}
+
+def setThermostatFanMode(fanmode) {
+	log.debug("setThermostatFanMode()" + fanmode)
+}
+
+def setThermostatMode(mode) {
+	log.debug("setThermostatMode()" + mode)
 }
 
 // handle commands
 def temperatureUp() {
-    def newValue = new Double(device.currentState("heatingSetpoint").value) + 0.5
-    sendEvent(name: "heatingSetpoint", value: newValue)
+    setHeatingSetpoint(new Double(device.currentState("heatingSetpoint").value) + 0.5)
 }
 
 def temperatureDown() {
-    def newValue = new Double(device.currentState("heatingSetpoint").value) - 0.5
-    sendEvent(name: "heatingSetpoint", value: newValue)
+    setHeatingSetpoint(new Double(device.currentState("heatingSetpoint").value) - 0.5)
+}
+
+def mySendEvent(event) {
+  log.debug("SendEvent: " + event)
+  sendEvent(event)
 }
