@@ -139,7 +139,9 @@ def updateTemperature(newTemperature) {
 
 // Capability methods
 def setHeatingSetpoint(newTemp) {
+	log.debug("setHeatingSetpoint(newTemp)")
     mySendEvent(name: "heatingSetpoint", value: newTemp)
+    parent.evaluateAllRooms(this)
 }
 
 def auto() {
