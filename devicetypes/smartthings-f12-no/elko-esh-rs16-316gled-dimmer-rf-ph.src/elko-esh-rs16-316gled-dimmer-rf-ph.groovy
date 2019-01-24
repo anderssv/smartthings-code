@@ -64,15 +64,18 @@ def parse(String description) {
 }
 
 def off() {
+    log.debug("on()")
     zigbee.off()
 }
 
 def on() {
+    log.debug("on()")
     zigbee.on()
 }
 
 def setLevel(value) {
-    zigbee.setLevel(value)
+    log.debug("setLevel()")
+    zigbee.on() + zigbee.setLevel(value)
 }
 
 def refresh() {
