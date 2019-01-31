@@ -12,7 +12,10 @@
  *
  *  Based on the Danalock example in the Smartthings IDE (Create Device Handler -> From Example -> Danalock)
  *
- *  Adds option to set end to end operation from options.
+ *  This handler mainly adds options, and a way to reset the lock if the sylinder has gotten out of sync. This
+ *  can happen if the key and inside operates independently.
+ *
+ *  WARNING: Any options set here will override changes done in the Danalock app when the config is saved.
  *
  */
 metadata {
@@ -69,6 +72,8 @@ metadata {
 	}
     
     preferences {
+        input name: "autoLock", type: "number", title: "Autolock after X minutes (0 is off)", description: "After being unlocked, the lock will automatically lock again after this many minutes.", range: "0..360", required: true, defaultValue: 0
+        input name: "twistAssist", type: "bool", title: "Activate twist assist", description: "The lock will start turning if you twist it a little.", required: true, defaultValue: false
         input name: "blockToBlock", type: "bool", title: "End to end operation", description: "Necessary for some kind of locks. Makes status unavailable. Read the Danalock docs for details.", required: true, defaultValue: false
     }
 
@@ -287,5 +292,18 @@ def configure() {
 	
     // Available config: https://products.z-wavealliance.org/products/2556/configs
     def blockToBlockData = (blockToBlock) ? 1 : 0
-    return [ createEndToEndConfigEvent(blockToBlockData) ]
+    def twistAssistData = (twistAssist) ? 1 : 0
+    def autoLockData = autoLock * 60 // Needs to be in seconds, config is minutes
+    
+    def commands = [ 
+    	createEndToEndConfigEvent(blockToBlockData),
+        secure(zwave.configurationV1.configurationSet(parameterNumber: 1, size: 1, scaledConfigurationValue: twistAssistData)),
+    ]
+    
+    if (autoLockData > 0) {
+    	commands << secure(zwave.configurationV1.configurationSet(parameterNumber: 6, size: 4, scaledConfigurationValue: autoLockData))
+    }
+    
+    log.debug("Sending commands: ${commands}")
+    return commands
 }
