@@ -296,12 +296,9 @@ def configure() {
     def commands = [ 
     	createEndToEndConfigEvent(blockToBlockData),
         secure(zwave.configurationV1.configurationSet(parameterNumber: 1, size: 1, scaledConfigurationValue: twistAssistData)),
+        secure(zwave.configurationV1.configurationSet(parameterNumber: 6, size: 4, scaledConfigurationValue: autoLockData))
     ]
-    
-    if (autoLockData > 0) {
-    	commands << secure(zwave.configurationV1.configurationSet(parameterNumber: 6, size: 4, scaledConfigurationValue: autoLockData))
-    }
-    
-    log.debug("Sending commands: ${commands}")
+        
+    log.debug("Sending ${commands.size()} config commands")
     return commands
 }
