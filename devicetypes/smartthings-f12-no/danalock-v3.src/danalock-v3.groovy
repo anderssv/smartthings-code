@@ -231,13 +231,11 @@ def refresh() {
 
 def resetOperation() {
 	log.debug "Running reset sequence!"
-	return [ lock(), 
-    	"delay 8000", 
-        createEndToEndConfigEvent(1),
-        "delay 8000",
+	return [ createEndToEndConfigEvent(1),
+        "delay 3000",
         unlock(),
-        "delay 8000",
-        createEndToEndConfigEvent(0)
+        "delay 3000",
+        createEndToEndConfigEvent((blockToBlock) ? 1 : 0) // Set to whatever the config dictates after
     ]
 }
 
