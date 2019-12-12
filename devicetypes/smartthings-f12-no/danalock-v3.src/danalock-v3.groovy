@@ -17,6 +17,8 @@
  *
  *  WARNING: Any options set here will override changes done in the Danalock app when the config is saved.
  *
+ * Device info: https://products.z-wavealliance.org/products/2556
+ *
  */
 metadata {
 	definition(name: "Danalock v3", namespace: "smartthings.f12.no", author: "Anders Sveen") {
@@ -28,8 +30,6 @@ metadata {
 		capability "Sensor"
         capability "Configuration"
         
-        command "resetOperation"
-
 		fingerprint deviceId: '0x4002', inClusters: '0x72,0x80,0x86,0x98'
 	}
 
@@ -63,12 +63,9 @@ metadata {
 		standardTile("refresh", "device.lock", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
 			state "default", label:'', action:"refresh.refresh", icon:"st.secondary.refresh"
 		}
-		standardTile("reset", "device.reset", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
-			state "default", label:'reset', action:"resetOperation", icon:"st.secondary.refresh"
-		}
 
 		main "toggle"
-		details(["toggle", "lock", "unlock", "battery", "refresh", "reset"])
+		details(["toggle", "lock", "unlock", "battery", "refresh"])
 	}
     
     preferences {
@@ -226,17 +223,6 @@ def refresh() {
 	}
 	log.debug "refresh sending ${cmds.inspect()}"
 	cmds
-}
-
-
-def resetOperation() {
-	log.debug "Running reset sequence!"
-	return [ createEndToEndConfigEvent(1),
-        "delay 3000",
-        unlock(),
-        "delay 3000",
-        createEndToEndConfigEvent((blockToBlock) ? 1 : 0) // Set to whatever the config dictates after
-    ]
 }
 
 private createEndToEndConfigEvent(value) {

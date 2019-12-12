@@ -42,6 +42,11 @@ metadata {
         // TODO: define status and reply messages here
     }
 
+    preferences {
+        input name: "enabled", type: "bool", title: "Enabled?", defaultValue: true, required: false
+    }
+
+
     tiles {
         multiAttributeTile(name: "thermostatFull", type: "thermostat", width: 6, height: 4) {
             tileAttribute("device.temperature", key: "PRIMARY_CONTROL") {
@@ -110,10 +115,14 @@ private flipState(desiredState, outlets) {
     List wrongState = outlets.findAll { outlet -> outlet.currentValue("switch") != desiredState }
 
     wrongState.each { outlet ->
-        if (desiredState == "on") {
-            outlet.on()
+        if (enabled) {
+            if (desiredState == "on") {
+                outlet.on()
+            } else {
+                outlet.off()
+            }
         } else {
-            outlet.off()
+        	log.debug("Thermostat not enabled. Not changing state of switch.")
         }
     }
     if (wrongState.size > 0) {
