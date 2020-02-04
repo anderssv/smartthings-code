@@ -37,7 +37,7 @@ metadata {
 
     // tile definitions
     tiles {
-        valueTile("energy", "device.energy", width: 3, height: 2,  canChangeIcon: true) {
+        valueTile("energy", "device.energy", width: 3, height: 2, canChangeIcon: true) {
             state "default", label: '${currentValue} kWh'
         }
         valueTile("power", "device.power") {

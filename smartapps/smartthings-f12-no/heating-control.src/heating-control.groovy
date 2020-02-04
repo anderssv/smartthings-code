@@ -85,19 +85,19 @@ def settingsToRooms() {
         settings
                 .findAll { key, value -> key.startsWith("room${roomNumber}") }
                 .each { key, value ->
-            if (key.startsWith("room${roomNumber}Mode")) {
-                // TODO This will fail if modes > 9
-                int modeNumber = Integer.parseInt(key.replaceAll("room${roomNumber}Mode", "").take(1))
-                def attributeName = key.replaceAll("room${roomNumber}Mode${modeNumber}", "")
-                if (!modesMap.containsKey(modeNumber)) {
-                    modesMap[modeNumber] = [:]
+                    if (key.startsWith("room${roomNumber}Mode")) {
+                        // TODO This will fail if modes > 9
+                        int modeNumber = Integer.parseInt(key.replaceAll("room${roomNumber}Mode", "").take(1))
+                        def attributeName = key.replaceAll("room${roomNumber}Mode${modeNumber}", "")
+                        if (!modesMap.containsKey(modeNumber)) {
+                            modesMap[modeNumber] = [:]
+                        }
+                        modesMap[modeNumber][attributeName] = value
+                    } else {
+                        def attributeName = key.replaceAll("room${roomNumber}", "")
+                        currentRoomMap[attributeName] = value
+                    }
                 }
-                modesMap[modeNumber][attributeName] = value
-            } else {
-                def attributeName = key.replaceAll("room${roomNumber}", "")
-                currentRoomMap[attributeName] = value
-            }
-        }
         roomMap[roomNumber] = currentRoomMap
     }
 
@@ -143,17 +143,17 @@ def temperatureHandler(evt) {
     settingsToRooms()
             .findAll { key, room -> room.Sensor.toString().equals(evt.getDevice().toString()) }
             .each { key, room ->
-		        log.debug("Found sensor ${room.Sensor} for ${room.Name}, handling...")
-   			    def thermostat = getThermostateDeviceForRoom(key)
-        		thermostat.updateTemperature(evt.value)
-        		thermostat.evaluate(room.Switches)
-    		}
+                log.debug("Found sensor ${room.Sensor} for ${room.Name}, handling...")
+                def thermostat = getThermostateDeviceForRoom(key)
+                thermostat.updateTemperature(evt.value)
+                thermostat.evaluate(room.Switches)
+            }
 }
 
 def evaluateAllRooms(child) {
-	settingsToRooms().each { key, room ->
-	    def thermostat = getThermostateDeviceForRoom(key)
-    	thermostat.evaluate(room.Switches)
+    settingsToRooms().each { key, room ->
+        def thermostat = getThermostateDeviceForRoom(key)
+        thermostat.evaluate(room.Switches)
     }
 }
 

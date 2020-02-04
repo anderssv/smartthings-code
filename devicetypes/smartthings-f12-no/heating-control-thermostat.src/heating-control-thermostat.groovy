@@ -20,8 +20,8 @@ metadata {
         capability "Thermostat Operating State"
 
 
-		// Heating Setpoing
-		command "setHeatingSetpoint"
+        // Heating Setpoing
+        command "setHeatingSetpoint"
         // Thermostat Mode
         command "auto"
         command "cool"
@@ -30,8 +30,8 @@ metadata {
         command "off"
         command "setThermostatMode"
         // Thermostat Operating State
-        // None actually                
-        
+        // None actually
+
         // Internal commands related to logic, only used by the tiles
         command "temperatureUp"
         command "temperatureDown"
@@ -122,7 +122,7 @@ private flipState(desiredState, outlets) {
                 outlet.off()
             }
         } else {
-        	log.debug("Thermostat not enabled. Not changing state of switch.")
+            log.debug("Thermostat not enabled. Not changing state of switch.")
         }
     }
     if (wrongState.size > 0) {
@@ -148,45 +148,45 @@ def updateTemperature(newTemperature) {
 
 // Capability methods
 def setHeatingSetpoint(newTemp) {
-	log.debug("setHeatingSetpoint(newTemp)")
+    log.debug("setHeatingSetpoint(newTemp)")
     mySendEvent(name: "heatingSetpoint", value: newTemp)
     parent.evaluateAllRooms(this)
 }
 
 def auto() {
-	log.debug("auto()")
+    log.debug("auto()")
 }
 
 def cool() {
-	log.debug("cool()")
+    log.debug("cool()")
 }
 
 def emergencyHeat() {
-	log.debug("emergencyHeat()")
+    log.debug("emergencyHeat()")
 }
 
 def heat() {
-	log.debug("heat()")
+    log.debug("heat()")
 }
 
 def off() {
-	log.debug("off()")
+    log.debug("off()")
 }
 
 def setCoolingSetpoint(setpoint) {
-	log.debug("setCoolingSetpoint()" + setpoint)
+    log.debug("setCoolingSetpoint()" + setpoint)
 }
 
 def setSchedule(schedule) {
-	log.debug("setSchedule()" + schedule)
+    log.debug("setSchedule()" + schedule)
 }
 
 def setThermostatFanMode(fanmode) {
-	log.debug("setThermostatFanMode()" + fanmode)
+    log.debug("setThermostatFanMode()" + fanmode)
 }
 
 def setThermostatMode(mode) {
-	log.debug("setThermostatMode()" + mode)
+    log.debug("setThermostatMode()" + mode)
 }
 
 // handle commands
@@ -199,6 +199,6 @@ def temperatureDown() {
 }
 
 def mySendEvent(event) {
-  log.debug("SendEvent: " + event)
-  sendEvent(event)
+    log.debug("SendEvent: " + event)
+    sendEvent(event)
 }
