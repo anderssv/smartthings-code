@@ -84,6 +84,7 @@ def installed() {
     subscribe(sensor, "temperature", temperatureHandler)
     sendEvent(name: "thermostatOperatingState", value: "idle")
     sendEvent(name: "heatingSetpoint", value: 20)
+    sendEvent(name: "temperature", value: 20)
 }
 
 def updated() {
