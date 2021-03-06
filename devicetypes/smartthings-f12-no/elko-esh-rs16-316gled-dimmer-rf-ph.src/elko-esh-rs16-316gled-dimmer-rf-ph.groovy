@@ -73,7 +73,7 @@ def on() {
     zigbee.on()
 }
 
-def setLevel(value) {
+def setLevel(value, rate=0) {
     log.debug("setLevel()")
     zigbee.on() + zigbee.setLevel(value)
 }
